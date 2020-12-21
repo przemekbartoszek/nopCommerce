@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -144,312 +145,21 @@ namespace Nop.Web.Factories
 
         #endregion
 
-        #region Utilities
-
-        protected virtual CategorySimpleModel GetCategorySimpleModel(XElement elem)
-        {
-            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
-
-            var model = new CategorySimpleModel
-            {
-                Id = int.Parse(elem.XPathSelectElement("Id").Value),
-                Name = elem.XPathSelectElement("Name").Value,
-                SeName = elem.XPathSelectElement("SeName").Value,
-
-                NumberOfProducts = !string.IsNullOrEmpty(elem.XPathSelectElement("NumberOfProducts").Value)
-                    ? int.Parse(elem.XPathSelectElement("NumberOfProducts").Value)
-                    : (int?)null,
-
-                IncludeInTopMenu = bool.Parse(elem.XPathSelectElement("IncludeInTopMenu").Value),
-                HaveSubCategories = bool.Parse(elem.XPathSelectElement("HaveSubCategories").Value),
-                Route = urlHelper.RouteUrl("Category", new { SeName = elem.XPathSelectElement("SeName").Value })
-            };
-
-            return model;
-        }
-
-        /// <summary>
-        /// Prepare sorting options
-        /// </summary>
-        /// <param name="pagingFilteringModel">Catalog paging filtering model</param>
-        /// <param name="command">Catalog paging filtering command</param>
-        protected virtual async Task PrepareSortingOptionsAsync(CatalogPagingFilteringModel pagingFilteringModel, CatalogPagingFilteringModel command)
-        {
-            if (pagingFilteringModel == null)
-                throw new ArgumentNullException(nameof(pagingFilteringModel));
-
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-
-            //set the order by position by default
-            pagingFilteringModel.OrderBy = command.OrderBy;
-            command.OrderBy = (int)ProductSortingEnum.Position;
-
-            //ensure that product sorting is enabled
-            if (!_catalogSettings.AllowProductSorting)
-                return;
-
-            //get active sorting options
-            var activeSortingOptionsIds = Enum.GetValues(typeof(ProductSortingEnum)).Cast<int>()
-                .Except(_catalogSettings.ProductSortingEnumDisabled).ToList();
-            if (!activeSortingOptionsIds.Any())
-                return;
-
-            //order sorting options
-            var orderedActiveSortingOptions = activeSortingOptionsIds
-                .Select(id => new { Id = id, Order = _catalogSettings.ProductSortingEnumDisplayOrder.TryGetValue(id, out var order) ? order : id })
-                .OrderBy(option => option.Order).ToList();
-
-            pagingFilteringModel.AllowProductSorting = true;
-            command.OrderBy = pagingFilteringModel.OrderBy ?? orderedActiveSortingOptions.FirstOrDefault().Id;
-
-            //prepare available model sorting options
-            var currentPageUrl = _webHelper.GetThisPageUrl(true);
-            foreach (var option in orderedActiveSortingOptions)
-            {
-                pagingFilteringModel.AvailableSortOptions.Add(new SelectListItem
-                {
-                    Text = await _localizationService.GetLocalizedEnumAsync((ProductSortingEnum)option.Id),
-                    Value = _webHelper.ModifyQueryString(currentPageUrl, "orderby", option.Id.ToString()),
-                    Selected = option.Id == command.OrderBy
-                });
-            }
-        }
-
-        /// <summary>
-        /// Prepare view modes
-        /// </summary>
-        /// <param name="pagingFilteringModel">Catalog paging filtering model</param>
-        /// <param name="command">Catalog paging filtering command</param>
-        protected virtual async Task PrepareViewModesAsync(CatalogPagingFilteringModel pagingFilteringModel, CatalogPagingFilteringModel command)
-        {
-            if (pagingFilteringModel == null)
-                throw new ArgumentNullException(nameof(pagingFilteringModel));
-
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-
-            pagingFilteringModel.AllowProductViewModeChanging = _catalogSettings.AllowProductViewModeChanging;
-
-            var viewMode = !string.IsNullOrEmpty(command.ViewMode)
-                ? command.ViewMode
-                : _catalogSettings.DefaultViewMode;
-            pagingFilteringModel.ViewMode = viewMode;
-            if (pagingFilteringModel.AllowProductViewModeChanging)
-            {
-                var currentPageUrl = _webHelper.GetThisPageUrl(true);
-                //grid
-                pagingFilteringModel.AvailableViewModes.Add(new SelectListItem
-                {
-                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.Grid"),
-                    Value = _webHelper.ModifyQueryString(currentPageUrl, "viewmode", "grid"),
-                    Selected = viewMode == "grid"
-                });
-                //list
-                pagingFilteringModel.AvailableViewModes.Add(new SelectListItem
-                {
-                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.List"),
-                    Value = _webHelper.ModifyQueryString(currentPageUrl, "viewmode", "list"),
-                    Selected = viewMode == "list"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Prepare page size options
-        /// </summary>
-        /// <param name="pagingFilteringModel">Catalog paging filtering model</param>
-        /// <param name="command">Catalog paging filtering command</param>
-        /// <param name="allowCustomersToSelectPageSize">Are customers allowed to select page size?</param>
-        /// <param name="pageSizeOptions">Page size options</param>
-        /// <param name="fixedPageSize">Fixed page size</param>
-        protected virtual Task PreparePageSizeOptionsAsync(CatalogPagingFilteringModel pagingFilteringModel, CatalogPagingFilteringModel command,
-            bool allowCustomersToSelectPageSize, string pageSizeOptions, int fixedPageSize)
-        {
-            if (pagingFilteringModel == null)
-                throw new ArgumentNullException(nameof(pagingFilteringModel));
-
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-
-            if (command.PageNumber <= 0)
-                command.PageNumber = 1;
-
-            pagingFilteringModel.AllowCustomersToSelectPageSize = false;
-            if (allowCustomersToSelectPageSize && pageSizeOptions != null)
-            {
-                var pageSizes = pageSizeOptions.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-                if (pageSizes.Any())
-                {
-                    // get the first page size entry to use as the default (category page load) or if customer enters invalid value via query string
-                    if (command.PageSize <= 0 || !pageSizes.Contains(command.PageSize.ToString()))
-                    {
-                        if (int.TryParse(pageSizes.FirstOrDefault(), out var temp))
-                        {
-                            if (temp > 0)
-                            {
-                                command.PageSize = temp;
-                            }
-                        }
-                    }
-
-                    var currentPageUrl = _webHelper.GetThisPageUrl(true);
-                    var sortUrl = _webHelper.RemoveQueryString(currentPageUrl, "pagenumber");
-
-                    foreach (var pageSize in pageSizes)
-                    {
-                        if (!int.TryParse(pageSize, out var temp))
-                            continue;
-
-                        if (temp <= 0)
-                            continue;
-
-                        pagingFilteringModel.PageSizeOptions.Add(new SelectListItem
-                        {
-                            Text = pageSize,
-                            Value = _webHelper.ModifyQueryString(sortUrl, "pagesize", pageSize),
-                            Selected = pageSize.Equals(command.PageSize.ToString(), StringComparison.InvariantCultureIgnoreCase)
-                        });
-                    }
-
-                    if (pagingFilteringModel.PageSizeOptions.Any())
-                    {
-                        pagingFilteringModel.PageSizeOptions = pagingFilteringModel.PageSizeOptions.OrderBy(x => int.Parse(x.Text)).ToList();
-                        pagingFilteringModel.AllowCustomersToSelectPageSize = true;
-
-                        if (command.PageSize <= 0)
-                        {
-                            command.PageSize = int.Parse(pagingFilteringModel.PageSizeOptions.First().Text);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                //customer is not allowed to select a page size
-                command.PageSize = fixedPageSize;
-            }
-
-            //ensure pge size is specified
-            if (command.PageSize <= 0)
-            {
-                command.PageSize = fixedPageSize;
-            }
-
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Prepare category (simple) models
-        /// </summary>
-        /// <returns>List of category (simple) models</returns>
-        protected virtual async Task<List<CategorySimpleModel>> PrepareCategorySimpleModelsAsync()
-        {
-            //load and cache them
-            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.CategoryAllModelKey,
-                await _workContext.GetWorkingLanguageAsync(),
-                _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
-                await _storeContext.GetCurrentStoreAsync());
-
-            return await _staticCacheManager.GetAsync(cacheKey, async () => await PrepareCategorySimpleModelsAsync(0));
-        }
-
-        /// <summary>
-        /// Prepare category (simple) models
-        /// </summary>
-        /// <param name="rootCategoryId">Root category identifier</param>
-        /// <param name="loadSubCategories">A value indicating whether subcategories should be loaded</param>
-        /// <returns>List of category (simple) models</returns>
-        protected virtual async Task<List<CategorySimpleModel>> PrepareCategorySimpleModelsAsync(int rootCategoryId, bool loadSubCategories = true)
-        {
-            var result = new List<CategorySimpleModel>();
-
-            //little hack for performance optimization
-            //we know that this method is used to load top and left menu for categories.
-            //it'll load all categories anyway.
-            //so there's no need to invoke "GetAllCategoriesByParentCategoryId" multiple times (extra SQL commands) to load childs
-            //so we load all categories at once (we know they are cached)
-            var allCategories = await _categoryService.GetAllCategoriesAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id);
-            var categories = allCategories.Where(c => c.ParentCategoryId == rootCategoryId).OrderBy(c => c.DisplayOrder).ToList();
-            foreach (var category in categories)
-            {
-                var categoryModel = new CategorySimpleModel
-                {
-                    Id = category.Id,
-                    Name = await _localizationService.GetLocalizedAsync(category, x => x.Name),
-                    SeName = await _urlRecordService.GetSeNameAsync(category),
-                    IncludeInTopMenu = category.IncludeInTopMenu
-                };
-
-                //number of products in each category
-                if (_catalogSettings.ShowCategoryProductNumber)
-                {
-                    var categoryIds = new List<int> { category.Id };
-                    //include subcategories
-                    if (_catalogSettings.ShowCategoryProductNumberIncludingSubcategories)
-                        categoryIds.AddRange(
-                            await _categoryService.GetChildCategoryIdsAsync(category.Id, (await _storeContext.GetCurrentStoreAsync()).Id));
-
-                    categoryModel.NumberOfProducts =
-                        await _productService.GetNumberOfProductsInCategoryAsync(categoryIds, (await _storeContext.GetCurrentStoreAsync()).Id);
-                }
-
-                if (loadSubCategories)
-                {
-                    var subCategories = await PrepareCategorySimpleModelsAsync(category.Id);
-                    categoryModel.SubCategories.AddRange(subCategories);
-                }
-
-                categoryModel.HaveSubCategories = categoryModel.SubCategories.Count > 0 &
-                    categoryModel.SubCategories.Any(x => x.IncludeInTopMenu);
-
-                result.Add(categoryModel);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Prepare category (simple) xml document
-        /// </summary>
-        /// <returns>Xml document of category (simple) models</returns>
-        protected virtual async Task<XDocument> PrepareCategoryXmlDocumentAsync()
-        {
-            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.CategoryXmlAllModelKey,
-                await _workContext.GetWorkingLanguageAsync(),
-                _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
-                await _storeContext.GetCurrentStoreAsync());
-
-            return await _staticCacheManager.GetAsync(cacheKey, async () =>
-            {
-                var categories = await PrepareCategorySimpleModelsAsync();
-
-                var xsSubmit = new XmlSerializer(typeof(List<CategorySimpleModel>));
-
-                await using var strWriter = new StringWriter();
-                using var writer = XmlWriter.Create(strWriter);
-                xsSubmit.Serialize(writer, categories);
-                var xml = strWriter.ToString();
-
-                return XDocument.Parse(xml);
-            });
-        }
-
-        #endregion
-
         #region Categories
 
         /// <summary>
         /// Prepare category model
         /// </summary>
         /// <param name="category">Category</param>
-        /// <param name="command">Catalog paging filtering command</param>
+        /// <param name="command">Model to get the catalog products</param>
         /// <returns>Category model</returns>
-        public virtual async Task<CategoryModel> PrepareCategoryModelAsync(Category category, CatalogPagingFilteringModel command)
+        public virtual async Task<CategoryModel> PrepareCategoryModelAsync(Category category, GetCatalogProductsCommand command)
         {
             if (category == null)
                 throw new ArgumentNullException(nameof(category));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
 
             var model = new CategoryModel
             {
@@ -460,31 +170,8 @@ namespace Nop.Web.Factories
                 MetaDescription = await _localizationService.GetLocalizedAsync(category, x => x.MetaDescription),
                 MetaTitle = await _localizationService.GetLocalizedAsync(category, x => x.MetaTitle),
                 SeName = await _urlRecordService.GetSeNameAsync(category),
+                CatalogProductsModel = await PrepareCategoryProductsModelAsync(category, command)
             };
-
-            //sorting
-            await PrepareSortingOptionsAsync(model.PagingFilteringContext, command);
-            //view mode
-            await PrepareViewModesAsync(model.PagingFilteringContext, command);
-            //page size
-            await PreparePageSizeOptionsAsync(model.PagingFilteringContext, command,
-                category.AllowCustomersToSelectPageSize,
-                category.PageSizeOptions,
-                category.PageSize);
-
-            //price ranges
-            await model.PagingFilteringContext.PriceRangeFilter.LoadPriceRangeFiltersAsync(category.PriceRanges, _webHelper, _priceFormatter);
-            var selectedPriceRange = await model.PagingFilteringContext.PriceRangeFilter.GetSelectedPriceRangeAsync(_webHelper, category.PriceRanges);
-            decimal? minPriceConverted = null;
-            decimal? maxPriceConverted = null;
-            if (selectedPriceRange != null)
-            {
-                if (selectedPriceRange.From.HasValue)
-                    minPriceConverted = await _currencyService.ConvertToPrimaryStoreCurrencyAsync(selectedPriceRange.From.Value, await _workContext.GetWorkingCurrencyAsync());
-
-                if (selectedPriceRange.To.HasValue)
-                    maxPriceConverted = await _currencyService.ConvertToPrimaryStoreCurrencyAsync(selectedPriceRange.To.Value, await _workContext.GetWorkingCurrencyAsync());
-            }
 
             //category breadcrumb
             if (_catalogSettings.CategoryBreadcrumbEnabled)
@@ -500,6 +187,7 @@ namespace Nop.Web.Factories
                     }).ToListAsync();
             }
 
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
             var pictureSize = _mediaSettings.CategoryThumbPictureSize;
 
             //subcategories
@@ -517,7 +205,7 @@ namespace Nop.Web.Factories
                     //prepare picture model
                     var categoryPictureCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.CategoryPictureModelKey, curCategory,
                         pictureSize, true, await _workContext.GetWorkingLanguageAsync(), _webHelper.IsCurrentConnectionSecured(),
-                        await _storeContext.GetCurrentStoreAsync());
+                        currentStore);
 
                     subCatModel.PictureModel = await _staticCacheManager.GetAsync(categoryPictureCacheKey, async () =>
                     {
@@ -546,38 +234,10 @@ namespace Nop.Web.Factories
             //featured products
             if (!_catalogSettings.IgnoreFeaturedProducts)
             {
-                var storeId = (await _storeContext.GetCurrentStoreAsync()).Id;
-                var featuredProducts = await _productService.GetCategoryFeaturedProductsAsync(category.Id, storeId);
+                var featuredProducts = await _productService.GetCategoryFeaturedProductsAsync(category.Id, currentStore.Id);
                 if (featuredProducts != null)
                     model.FeaturedProducts = (await _productModelFactory.PrepareProductOverviewModelsAsync(featuredProducts)).ToList();
             }
-
-            var categoryIds = new List<int> { category.Id };
-
-            //include subcategories
-            if (_catalogSettings.ShowProductsFromSubcategories)
-                categoryIds.AddRange(await _categoryService.GetChildCategoryIdsAsync(category.Id, (await _storeContext.GetCurrentStoreAsync()).Id));
-
-            //products
-            IList<int> alreadyFilteredSpecOptionIds = await model.PagingFilteringContext.SpecificationFilter.GetAlreadyFilteredSpecOptionIdsAsync(_webHelper);
-            var (products, filterableSpecificationAttributeOptionIds) = await _productService.SearchProductsAsync(true,
-                categoryIds: categoryIds,
-                storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
-                visibleIndividuallyOnly: true,
-                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
-                priceMin: minPriceConverted,
-                priceMax: maxPriceConverted,
-                filteredSpecs: alreadyFilteredSpecOptionIds,
-                orderBy: (ProductSortingEnum)command.OrderBy,
-                pageIndex: command.PageNumber - 1,
-                pageSize: command.PageSize);
-            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
-
-            model.PagingFilteringContext.LoadPagedList(products);
-
-            //specs
-            await model.PagingFilteringContext.SpecificationFilter.PrepareSpecsFiltersAsync(alreadyFilteredSpecOptionIds,
-                filterableSpecificationAttributeOptionIds?.ToArray(), _specificationAttributeService, _localizationService, _webHelper, _workContext, _staticCacheManager);
 
             return model;
         }
@@ -765,6 +425,95 @@ namespace Nop.Web.Factories
             return models.ToList();
         }
 
+        /// <summary>
+        /// Prepares the category products model
+        /// </summary>
+        /// <param name="category">Category</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The category products model</returns>
+        public virtual async Task<CatalogProductsModel> PrepareCategoryProductsModelAsync(Category category, GetCatalogProductsCommand command)
+        {
+            if (category == null)
+                throw new ArgumentNullException(nameof(category));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogProductsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
+            };
+
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
+            //sorting
+            await PrepareSortingOptionsAsync(model, command);
+            //view mode
+            await PrepareViewModesAsync(model, command);
+            //page size
+            await PreparePageSizeOptionsAsync(model, command, category.AllowCustomersToSelectPageSize, 
+                category.PageSizeOptions, category.PageSize);
+
+            var categoryIds = new List<int> { category.Id };
+
+            //include subcategories
+            if (_catalogSettings.ShowProductsFromSubcategories)
+                categoryIds.AddRange(await _categoryService.GetChildCategoryIdsAsync(category.Id, currentStore.Id));
+
+            //price range
+            //todo: include tax, discount ?
+            var selectedPriceRange = await GetConvertedPriceRangeAsync(command);
+            var availablePriceRange = new PriceRangeModel();
+
+            var productWithMinPrice = await _productService.SearchProductsAsync(0, 1,
+                categoryIds: categoryIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+                orderBy: ProductSortingEnum.PriceAsc);
+            availablePriceRange.From = productWithMinPrice?.FirstOrDefault()?.Price;
+
+            var productWithMaxPrice = await _productService.SearchProductsAsync(0, 1,
+                categoryIds: categoryIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+                orderBy: ProductSortingEnum.PriceDesc);
+            availablePriceRange.To = productWithMaxPrice?.FirstOrDefault()?.Price;
+
+            model.PriceRangeFilter = await PreparePriceRangeFilterAsync(selectedPriceRange, availablePriceRange);
+
+            //filterable options
+            var filterableOptions = await _specificationAttributeService
+                .GetFiltrableSpecificationAttributeOptionsByCategoryIdAsync(category.Id);
+
+            model.SpecificationFilter = await PrepareSpecificationFilterModel(command.SpecificationOptionIds, filterableOptions);
+
+            //filterable manufacturers
+            var manufacturers = await _manufacturerService.GetManufacturersByCategoryId(category.Id);
+
+            model.ManufacturerFilter = await PrepareSpecificationFilterModel(command.ManufacturerIds, manufacturers);
+
+            //products
+            var products = await _productService.SearchProductsAsync(
+                command.PageNumber - 1,
+                command.PageSize,
+                categoryIds: categoryIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+                priceMin: selectedPriceRange.From,
+                priceMax: selectedPriceRange.To,
+                manufacturerIds: command.ManufacturerIds,
+                filteredSpecs: command.SpecificationOptionIds,
+                orderBy: (ProductSortingEnum)command.OrderBy);
+
+            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+            model.LoadPagedList(products);
+
+            return model;
+        }
+
         #endregion
 
         #region Manufacturers
@@ -773,12 +522,15 @@ namespace Nop.Web.Factories
         /// Prepare manufacturer model
         /// </summary>
         /// <param name="manufacturer">Manufacturer identifier</param>
-        /// <param name="command">Catalog paging filtering command</param>
+        /// <param name="command">Model to get the catalog products</param>
         /// <returns>Manufacturer model</returns>
-        public virtual async Task<ManufacturerModel> PrepareManufacturerModelAsync(Manufacturer manufacturer, CatalogPagingFilteringModel command)
+        public virtual async Task<ManufacturerModel> PrepareManufacturerModelAsync(Manufacturer manufacturer, GetCatalogProductsCommand command)
         {
             if (manufacturer == null)
                 throw new ArgumentNullException(nameof(manufacturer));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
 
             var model = new ManufacturerModel
             {
@@ -789,31 +541,8 @@ namespace Nop.Web.Factories
                 MetaDescription = await _localizationService.GetLocalizedAsync(manufacturer, x => x.MetaDescription),
                 MetaTitle = await _localizationService.GetLocalizedAsync(manufacturer, x => x.MetaTitle),
                 SeName = await _urlRecordService.GetSeNameAsync(manufacturer),
+                CatalogProductsModel = await PrepareManufacturerProductsModelAsync(manufacturer, command)
             };
-
-            //sorting
-            await PrepareSortingOptionsAsync(model.PagingFilteringContext, command);
-            //view mode
-            await PrepareViewModesAsync(model.PagingFilteringContext, command);
-            //page size
-            await PreparePageSizeOptionsAsync(model.PagingFilteringContext, command,
-                manufacturer.AllowCustomersToSelectPageSize,
-                manufacturer.PageSizeOptions,
-                manufacturer.PageSize);
-
-            //price ranges
-            await model.PagingFilteringContext.PriceRangeFilter.LoadPriceRangeFiltersAsync(manufacturer.PriceRanges, _webHelper, _priceFormatter);
-            var selectedPriceRange = await model.PagingFilteringContext.PriceRangeFilter.GetSelectedPriceRangeAsync(_webHelper, manufacturer.PriceRanges);
-            decimal? minPriceConverted = null;
-            decimal? maxPriceConverted = null;
-            if (selectedPriceRange != null)
-            {
-                if (selectedPriceRange.From.HasValue)
-                    minPriceConverted = await _currencyService.ConvertToPrimaryStoreCurrencyAsync(selectedPriceRange.From.Value, await _workContext.GetWorkingCurrencyAsync());
-
-                if (selectedPriceRange.To.HasValue)
-                    maxPriceConverted = await _currencyService.ConvertToPrimaryStoreCurrencyAsync(selectedPriceRange.To.Value, await _workContext.GetWorkingCurrencyAsync());
-            }
 
             //featured products
             if (!_catalogSettings.IgnoreFeaturedProducts)
@@ -824,18 +553,83 @@ namespace Nop.Web.Factories
                     model.FeaturedProducts = (await _productModelFactory.PrepareProductOverviewModelsAsync(featuredProducts)).ToList();
             }
 
-            //products
-            var products = await _productService.SearchProductsAsync(command.PageNumber - 1, command.PageSize,
-                manufacturerId: manufacturer.Id,
-                storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
+            return model;
+        }
+
+        /// <summary>
+        /// Prepares the manufacturer products model
+        /// </summary>
+        /// <param name="manufacturer">Manufacturer</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The manufacturer products model</returns>
+        public virtual async Task<CatalogProductsModel> PrepareManufacturerProductsModelAsync(Manufacturer manufacturer, GetCatalogProductsCommand command)
+        {
+            if (manufacturer == null)
+                throw new ArgumentNullException(nameof(manufacturer));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogProductsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
+            };
+
+            var manufacturerIds = new List<int> { manufacturer.Id };
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
+            //sorting
+            await PrepareSortingOptionsAsync(model, command);
+            //view mode
+            await PrepareViewModesAsync(model, command);
+            //page size
+            await PreparePageSizeOptionsAsync(model, command, manufacturer.AllowCustomersToSelectPageSize,
+                manufacturer.PageSizeOptions, manufacturer.PageSize);
+
+            //price range
+            //todo: include tax, discount ?
+            var selectedPriceRange = await GetConvertedPriceRangeAsync(command);
+            var availablePriceRange = new PriceRangeModel();
+
+            var productWithMinPrice = await _productService.SearchProductsAsync(0, 1,
+                manufacturerIds: manufacturerIds,
+                storeId: currentStore.Id,
                 visibleIndividuallyOnly: true,
                 excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
-                priceMin: minPriceConverted,
-                priceMax: maxPriceConverted,
-                orderBy: (ProductSortingEnum)command.OrderBy);
-            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+                orderBy: ProductSortingEnum.PriceAsc);
+            model.PriceRangeFilter.AvailablePriceRange.From = productWithMinPrice?.FirstOrDefault()?.Price;
 
-            model.PagingFilteringContext.LoadPagedList(products);
+            var productWithMaxPrice = await _productService.SearchProductsAsync(0, 1,
+                manufacturerIds: manufacturerIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+                orderBy: ProductSortingEnum.PriceDesc);
+            model.PriceRangeFilter.AvailablePriceRange.To = productWithMaxPrice?.FirstOrDefault()?.Price;
+
+            model.PriceRangeFilter = await PreparePriceRangeFilterAsync(selectedPriceRange, availablePriceRange);
+
+            // filterable options
+            var filterableOptions = await _specificationAttributeService
+                .GetFiltrableSpecificationAttributeOptionsByManufacturerIdAsync(manufacturer.Id);
+
+            model.SpecificationFilter = await PrepareSpecificationFilterModel(command.SpecificationOptionIds, filterableOptions);
+
+            //products
+            var products = await _productService.SearchProductsAsync(
+                command.PageNumber - 1,
+                command.PageSize,
+                manufacturerIds: manufacturerIds,
+                storeId: currentStore.Id,
+                visibleIndividuallyOnly: true,
+                excludeFeaturedProducts: !_catalogSettings.IgnoreFeaturedProducts && !_catalogSettings.IncludeFeaturedProductsInNormalLists,
+                priceMin: selectedPriceRange.From,
+                priceMax: selectedPriceRange.To,
+                filteredSpecs: command.SpecificationOptionIds,
+                orderBy: (ProductSortingEnum)command.OrderBy);
+
+            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+            model.LoadPagedList(products);
 
             return model;
         }
@@ -863,7 +657,9 @@ namespace Nop.Web.Factories
         public virtual async Task<List<ManufacturerModel>> PrepareManufacturerAllModelsAsync()
         {
             var model = new List<ManufacturerModel>();
-            var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id);
+
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+            var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: currentStore.Id);
             foreach (var manufacturer in manufacturers)
             {
                 var modelMan = new ManufacturerModel
@@ -881,7 +677,7 @@ namespace Nop.Web.Factories
                 var pictureSize = _mediaSettings.ManufacturerThumbPictureSize;
                 var manufacturerPictureCacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.ManufacturerPictureModelKey,
                     manufacturer, pictureSize, true, await _workContext.GetWorkingLanguageAsync(),
-                    _webHelper.IsCurrentConnectionSecured(), await _storeContext.GetCurrentStoreAsync());
+                    _webHelper.IsCurrentConnectionSecured(), currentStore);
                 modelMan.PictureModel = await _staticCacheManager.GetAsync(manufacturerPictureCacheKey, async () =>
                 {
                     var picture = await _pictureService.GetPictureByIdAsync(manufacturer.PictureId);
@@ -914,16 +710,17 @@ namespace Nop.Web.Factories
         /// <returns>Manufacturer navigation model</returns>
         public virtual async Task<ManufacturerNavigationModel> PrepareManufacturerNavigationModelAsync(int currentManufacturerId)
         {
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
             var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.ManufacturerNavigationModelKey,
                 currentManufacturerId,
                 await _workContext.GetWorkingLanguageAsync(),
                 await _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
-                await _storeContext.GetCurrentStoreAsync());
+                currentStore);
             var cachedModel = await _staticCacheManager.GetAsync(cacheKey, async () =>
             {
                 var currentManufacturer = await _manufacturerService.GetManufacturerByIdAsync(currentManufacturerId);
 
-                var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
+                var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: currentStore.Id,
                     pageSize: _catalogSettings.ManufacturersBlockItemsToDisplay);
                 var model = new ManufacturerNavigationModel
                 {
@@ -956,12 +753,15 @@ namespace Nop.Web.Factories
         /// Prepare vendor model
         /// </summary>
         /// <param name="vendor">Vendor</param>
-        /// <param name="command">Catalog paging filtering command</param>
+        /// <param name="command">Model to get the catalog products</param>
         /// <returns>Vendor model</returns>
-        public virtual async Task<VendorModel> PrepareVendorModelAsync(Vendor vendor, CatalogPagingFilteringModel command)
+        public virtual async Task<VendorModel> PrepareVendorModelAsync(Vendor vendor, GetCatalogProductsCommand command)
         {
             if (vendor == null)
                 throw new ArgumentNullException(nameof(vendor));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
 
             var model = new VendorModel
             {
@@ -972,28 +772,53 @@ namespace Nop.Web.Factories
                 MetaDescription = await _localizationService.GetLocalizedAsync(vendor, x => x.MetaDescription),
                 MetaTitle = await _localizationService.GetLocalizedAsync(vendor, x => x.MetaTitle),
                 SeName = await _urlRecordService.GetSeNameAsync(vendor),
-                AllowCustomersToContactVendors = _vendorSettings.AllowCustomersToContactVendors
+                AllowCustomersToContactVendors = _vendorSettings.AllowCustomersToContactVendors,
+                CatalogProductsModel = await PrepareVendorProductsModelAsync(vendor, command)
+            };
+
+            return model;
+        }
+
+        /// <summary>
+        /// Prepares the vendor products model
+        /// </summary>
+        /// <param name="vendor">Vendor</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The vendor products model</returns>
+        public virtual async Task<CatalogProductsModel> PrepareVendorProductsModelAsync(Vendor vendor, GetCatalogProductsCommand command)
+        {
+            if (vendor == null)
+                throw new ArgumentNullException(nameof(vendor));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogProductsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
             };
 
             //sorting
-            await PrepareSortingOptionsAsync(model.PagingFilteringContext, command);
+            await PrepareSortingOptionsAsync(model, command);
             //view mode
-            await PrepareViewModesAsync(model.PagingFilteringContext, command);
+            await PrepareViewModesAsync(model, command);
             //page size
-            await PreparePageSizeOptionsAsync(model.PagingFilteringContext, command,
-                vendor.AllowCustomersToSelectPageSize,
-                vendor.PageSizeOptions,
-                vendor.PageSize);
+            await PreparePageSizeOptionsAsync(model, command, vendor.AllowCustomersToSelectPageSize,
+                vendor.PageSizeOptions, vendor.PageSize);
+
+            //todo: add price range and specs filters ?
 
             //products
-            var products = await _productService.SearchProductsAsync(command.PageNumber - 1, command.PageSize,
+            var products = await _productService.SearchProductsAsync(
+                command.PageNumber - 1,
+                command.PageSize,
                 vendorId: vendor.Id,
                 storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
                 visibleIndividuallyOnly: true,
                 orderBy: (ProductSortingEnum)command.OrderBy);
-            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
 
-            model.PagingFilteringContext.LoadPagedList(products);
+            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+            model.LoadPagedList(products);
 
             return model;
         }
@@ -1092,17 +917,19 @@ namespace Nop.Web.Factories
         {
             var model = new PopularProductTagsModel();
 
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
+
             //get all tags
             var tags = await (await _productTagService.GetAllProductTagsAsync())
                 //filter by current store
-                .WhereAwait(async x => await _productTagService.GetProductCountAsync(x.Id, (await _storeContext.GetCurrentStoreAsync()).Id) > 0)
+                .WhereAwait(async x => await _productTagService.GetProductCountAsync(x.Id, currentStore.Id) > 0)
                 .ToListAsync();
 
             model.TotalTags = tags.Count;
 
             model.Tags.AddRange(await tags
                 //order by product count
-                .OrderByDescendingAwait(async x => await _productTagService.GetProductCountAsync(x.Id, (await _storeContext.GetCurrentStoreAsync()).Id))
+                .OrderByDescendingAwait(async x => await _productTagService.GetProductCountAsync(x.Id, currentStore.Id))
                 .Take(_catalogSettings.NumberOfProductTags)
                 //sorting
                 .OrderByAwait(async x => await _localizationService.GetLocalizedAsync(x, y => y.Name))
@@ -1111,7 +938,7 @@ namespace Nop.Web.Factories
                     Id = tag.Id,
                     Name = await _localizationService.GetLocalizedAsync(tag, y => y.Name),
                     SeName = await _urlRecordService.GetSeNameAsync(tag),
-                    ProductCount = await _productTagService.GetProductCountAsync(tag.Id, (await _storeContext.GetCurrentStoreAsync()).Id)
+                    ProductCount = await _productTagService.GetProductCountAsync(tag.Id, currentStore.Id)
                 }).ToListAsync());
 
             return model;
@@ -1121,41 +948,68 @@ namespace Nop.Web.Factories
         /// Prepare products by tag model
         /// </summary>
         /// <param name="productTag">Product tag</param>
-        /// <param name="command">Catalog paging filtering command</param>
+        /// <param name="command">Model to get the catalog products</param>
         /// <returns>Products by tag model</returns>
-        public virtual async Task<ProductsByTagModel> PrepareProductsByTagModelAsync(ProductTag productTag, CatalogPagingFilteringModel command)
+        public virtual async Task<ProductsByTagModel> PrepareProductsByTagModelAsync(ProductTag productTag, GetCatalogProductsCommand command)
         {
             if (productTag == null)
                 throw new ArgumentNullException(nameof(productTag));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
 
             var model = new ProductsByTagModel
             {
                 Id = productTag.Id,
                 TagName = await _localizationService.GetLocalizedAsync(productTag, y => y.Name),
-                TagSeName = await _urlRecordService.GetSeNameAsync(productTag)
+                TagSeName = await _urlRecordService.GetSeNameAsync(productTag),
+                CatalogProductsModel = await PrepareTagProductsModelAsync(productTag, command)
+            };
+
+            return model;
+        }
+
+        /// <summary>
+        /// Prepares the tag products model
+        /// </summary>
+        /// <param name="productTag">Product tag</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The tag products model</returns>
+        public virtual async Task<CatalogProductsModel> PrepareTagProductsModelAsync(ProductTag productTag, GetCatalogProductsCommand command)
+        {
+            if (productTag == null)
+                throw new ArgumentNullException(nameof(productTag));
+
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogProductsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
             };
 
             //sorting
-            await PrepareSortingOptionsAsync(model.PagingFilteringContext, command);
+            await PrepareSortingOptionsAsync(model, command);
             //view mode
-            await PrepareViewModesAsync(model.PagingFilteringContext, command);
+            await PrepareViewModesAsync(model, command);
             //page size
-            await PreparePageSizeOptionsAsync(model.PagingFilteringContext, command,
-                _catalogSettings.ProductsByTagAllowCustomersToSelectPageSize,
-                _catalogSettings.ProductsByTagPageSizeOptions,
-                _catalogSettings.ProductsByTagPageSize);
+            await PreparePageSizeOptionsAsync(model, command, _catalogSettings.ProductsByTagAllowCustomersToSelectPageSize,
+                _catalogSettings.ProductsByTagPageSizeOptions, _catalogSettings.ProductsByTagPageSize);
+
+            //todo: add price range and specs filters ?
 
             //products
-            var (products, _) = await _productService.SearchProductsAsync(false,
+            var products = await _productService.SearchProductsAsync(
+                command.PageNumber - 1,
+                command.PageSize,
                 storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
                 productTagId: productTag.Id,
                 visibleIndividuallyOnly: true,
-                orderBy: (ProductSortingEnum)command.OrderBy,
-                pageIndex: command.PageNumber - 1,
-                pageSize: command.PageSize);
-            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+                orderBy: (ProductSortingEnum)command.OrderBy);
 
-            model.PagingFilteringContext.LoadPagedList(products);
+            model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
+            model.LoadPagedList(products);
+
             return model;
         }
 
@@ -1165,11 +1019,12 @@ namespace Nop.Web.Factories
         /// <returns>Popular product tags model</returns>
         public virtual async Task<PopularProductTagsModel> PrepareProductTagsAllModelAsync()
         {
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
             var model = new PopularProductTagsModel
             {
                 Tags = await (await _productTagService.GetAllProductTagsAsync())
                 //filter by current store
-                .WhereAwait(async x => await _productTagService.GetProductCountAsync(x.Id, (await _storeContext.GetCurrentStoreAsync()).Id) > 0)
+                .WhereAwait(async x => await _productTagService.GetProductCountAsync(x.Id, currentStore.Id) > 0)
                 //sort by name
                 .OrderByAwait(async x => await _localizationService.GetLocalizedAsync(x, y => y.Name))
                 .SelectAwait(async x =>
@@ -1179,7 +1034,7 @@ namespace Nop.Web.Factories
                         Id = x.Id,
                         Name = await _localizationService.GetLocalizedAsync(x, y => y.Name),
                         SeName = await _urlRecordService.GetSeNameAsync(x),
-                        ProductCount = await _productTagService.GetProductCountAsync(x.Id, (await _storeContext.GetCurrentStoreAsync()).Id)
+                        ProductCount = await _productTagService.GetProductCountAsync(x.Id, currentStore.Id)
                     };
                     return ptModel;
                 })
@@ -1196,31 +1051,20 @@ namespace Nop.Web.Factories
         /// Prepare search model
         /// </summary>
         /// <param name="model">Search model</param>
-        /// <param name="command">Catalog paging filtering command</param>
+        /// <param name="command">Model to get the catalog products</param>
         /// <returns>Search model</returns>
-        public virtual async Task<SearchModel> PrepareSearchModelAsync(SearchModel model, CatalogPagingFilteringModel command)
+        public virtual async Task<SearchModel> PrepareSearchModelAsync(SearchModel model, GetCatalogProductsCommand command)
         {
             if (model == null)
                 throw new ArgumentNullException(nameof(model));
 
-            var searchTerms = model.q ?? string.Empty;
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
 
-            searchTerms = searchTerms.Trim();
-
-            //sorting
-            await PrepareSortingOptionsAsync(model.PagingFilteringContext, command);
-            //view mode
-            await PrepareViewModesAsync(model.PagingFilteringContext, command);
-            //page size
-            await PreparePageSizeOptionsAsync(model.PagingFilteringContext, command,
-                _catalogSettings.SearchPageAllowCustomersToSelectPageSize,
-                _catalogSettings.SearchPagePageSizeOptions,
-                _catalogSettings.SearchPageProductsPerPage);
-
-
+            var currentStore = await _storeContext.GetCurrentStoreAsync();
             var categoriesModels = new List<SearchModel.CategoryModel>();
             //all categories
-            var allCategories = await _categoryService.GetAllCategoriesAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id);
+            var allCategories = await _categoryService.GetAllCategoriesAsync(storeId: currentStore.Id);
             foreach (var c in allCategories)
             {
                 //generate full category name (breadcrumb)
@@ -1260,7 +1104,7 @@ namespace Nop.Web.Factories
                 }
             }
 
-            var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id);
+            var manufacturers = await _manufacturerService.GetAllManufacturersAsync(storeId: currentStore.Id);
             if (manufacturers.Any())
             {
                 model.AvailableManufacturers.Add(new SelectListItem
@@ -1298,15 +1142,52 @@ namespace Nop.Web.Factories
                 }
             }
 
+            model.CatalogProductsModel = await PrepareSearchProductsModelAsync(model, command);
+
+            return model;
+        }
+
+        /// <summary>
+        /// Prepares the search products model
+        /// </summary>
+        /// <param name="model">Search model</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The search products model</returns>
+        public virtual async Task<CatalogProductsModel> PrepareSearchProductsModelAsync(SearchModel searchModel, GetCatalogProductsCommand command)
+        {
+            if (command == null)
+                throw new ArgumentNullException(nameof(command));
+
+            var model = new CatalogProductsModel
+            {
+                UseAjaxLoading = _catalogSettings.UseAjaxCatalogProductsLoading
+            };
+
+            //sorting
+            await PrepareSortingOptionsAsync(model, command);
+            //view mode
+            await PrepareViewModesAsync(model, command);
+            //page size
+            await PreparePageSizeOptionsAsync(model, command, _catalogSettings.SearchPageAllowCustomersToSelectPageSize,
+                _catalogSettings.SearchPagePageSizeOptions, _catalogSettings.SearchPageProductsPerPage);
+
+            //todo: add price range and specs filters ?
+
+            var searchTerms = searchModel.q == null
+                ? string.Empty
+                : searchModel.q.Trim();
+
             IPagedList<Product> products = new PagedList<Product>(new List<Product>(), 0, 1);
             // only search if query string search keyword is set (used to aasync Task searching or displaying search term min length error message on /search page load)
             //we don't use "!string.IsNullOrEmpty(searchTerms)" in cases of "ProductSearchTermMinimumLength" set to 0 but searching by other parameters (e.g. category or price filter)
             var isSearchTermSpecified = _httpContextAccessor.HttpContext.Request.Query.ContainsKey("q");
             if (isSearchTermSpecified)
             {
+                var currentStore = await _storeContext.GetCurrentStoreAsync();
+
                 if (searchTerms.Length < _catalogSettings.ProductSearchTermMinimumLength)
                 {
-                    model.Warning =
+                    model.WarningMessage =
                         string.Format(await _localizationService.GetResourceAsync("Search.SearchTermMinimumLengthIsNCharacters"),
                             _catalogSettings.ProductSearchTermMinimumLength);
                 }
@@ -1318,75 +1199,78 @@ namespace Nop.Web.Factories
                     decimal? maxPriceConverted = null;
                     var searchInDescriptions = false;
                     var vendorId = 0;
-                    if (model.adv)
+                    if (searchModel.adv)
                     {
                         //advanced search
-                        var categoryId = model.cid;
+                        var categoryId = searchModel.cid;
                         if (categoryId > 0)
                         {
                             categoryIds.Add(categoryId);
-                            if (model.isc)
+                            if (searchModel.isc)
                             {
                                 //include subcategories
                                 categoryIds.AddRange(
-                                    await _categoryService.GetChildCategoryIdsAsync(categoryId, (await _storeContext.GetCurrentStoreAsync()).Id));
+                                    await _categoryService.GetChildCategoryIdsAsync(categoryId, currentStore.Id));
                             }
                         }
 
-                        manufacturerId = model.mid;
+                        manufacturerId = searchModel.mid;
 
                         //min price
-                        if (!string.IsNullOrEmpty(model.pf))
+                        if (!string.IsNullOrEmpty(searchModel.pf))
                         {
-                            if (decimal.TryParse(model.pf, out var minPrice))
+                            if (decimal.TryParse(searchModel.pf, out var minPrice))
                                 minPriceConverted =
                                     await _currencyService.ConvertToPrimaryStoreCurrencyAsync(minPrice,
                                         await _workContext.GetWorkingCurrencyAsync());
                         }
 
                         //max price
-                        if (!string.IsNullOrEmpty(model.pt))
+                        if (!string.IsNullOrEmpty(searchModel.pt))
                         {
-                            if (decimal.TryParse(model.pt, out var maxPrice))
+                            if (decimal.TryParse(searchModel.pt, out var maxPrice))
                                 maxPriceConverted =
                                     await _currencyService.ConvertToPrimaryStoreCurrencyAsync(maxPrice,
                                         await _workContext.GetWorkingCurrencyAsync());
                         }
 
-                        if (model.asv)
-                            vendorId = model.vid;
+                        if (searchModel.asv)
+                            vendorId = searchModel.vid;
 
-                        searchInDescriptions = model.sid;
+                        searchInDescriptions = searchModel.sid;
                     }
 
                     //var searchInProductTags = false;
                     var searchInProductTags = searchInDescriptions;
+                    var workingLanguage = await _workContext.GetWorkingLanguageAsync();
 
                     //products
-                    (products, _) = await _productService.SearchProductsAsync(false,
+                    products = await _productService.SearchProductsAsync(
+                        command.PageNumber - 1,
+                        command.PageSize,
                         categoryIds: categoryIds,
-                        manufacturerId: manufacturerId,
-                        storeId: (await _storeContext.GetCurrentStoreAsync()).Id,
+                        manufacturerIds: new List<int> { manufacturerId },
+                        storeId: currentStore.Id,
                         visibleIndividuallyOnly: true,
                         priceMin: minPriceConverted,
                         priceMax: maxPriceConverted,
                         keywords: searchTerms,
                         searchDescriptions: searchInDescriptions,
                         searchProductTags: searchInProductTags,
-                        languageId: (await _workContext.GetWorkingLanguageAsync()).Id,
+                        languageId: workingLanguage.Id,
                         orderBy: (ProductSortingEnum)command.OrderBy,
-                        pageIndex: command.PageNumber - 1,
-                        pageSize: command.PageSize,
                         vendorId: vendorId);
+
                     model.Products = (await _productModelFactory.PrepareProductOverviewModelsAsync(products)).ToList();
 
-                    model.NoResults = !model.Products.Any();
+                    if (model.Products.Count == 0)
+                        model.NoResultMessage = await _localizationService.GetResourceAsync("Search.NoResultsText");
 
                     //search term statistics
                     if (!string.IsNullOrEmpty(searchTerms))
                     {
                         var searchTerm =
-                            await _searchTermService.GetSearchTermByKeywordAsync(searchTerms, (await _storeContext.GetCurrentStoreAsync()).Id);
+                            await _searchTermService.GetSearchTermByKeywordAsync(searchTerms, currentStore.Id);
                         if (searchTerm != null)
                         {
                             searchTerm.Count++;
@@ -1397,7 +1281,7 @@ namespace Nop.Web.Factories
                             searchTerm = new SearchTerm
                             {
                                 Keyword = searchTerms,
-                                StoreId = (await _storeContext.GetCurrentStoreAsync()).Id,
+                                StoreId = currentStore.Id,
                                 Count = 1
                             };
                             await _searchTermService.InsertSearchTermAsync(searchTerm);
@@ -1411,13 +1295,14 @@ namespace Nop.Web.Factories
                         SearchInDescriptions = searchInDescriptions,
                         CategoryIds = categoryIds,
                         ManufacturerId = manufacturerId,
-                        WorkingLanguageId = (await _workContext.GetWorkingLanguageAsync()).Id,
+                        WorkingLanguageId = workingLanguage.Id,
                         VendorId = vendorId
                     });
                 }
             }
 
-            model.PagingFilteringContext.LoadPagedList(products);
+            model.LoadPagedList(products);
+
             return model;
         }
 
@@ -1436,6 +1321,452 @@ namespace Nop.Web.Factories
             };
 
             return Task.FromResult(model);
+        }
+
+        #endregion
+
+        #region Utilities
+
+        /// <summary>
+        /// Prepare category (simple) models
+        /// </summary>
+        /// <param name="rootCategoryId">Root category identifier</param>
+        /// <param name="loadSubCategories">A value indicating whether subcategories should be loaded</param>
+        /// <returns>List of category (simple) models</returns>
+        protected virtual async Task<List<CategorySimpleModel>> PrepareCategorySimpleModelsAsync(int rootCategoryId, bool loadSubCategories = true)
+        {
+            var result = new List<CategorySimpleModel>();
+
+            //little hack for performance optimization
+            //we know that this method is used to load top and left menu for categories.
+            //it'll load all categories anyway.
+            //so there's no need to invoke "GetAllCategoriesByParentCategoryId" multiple times (extra SQL commands) to load childs
+            //so we load all categories at once (we know they are cached)
+            var allCategories = await _categoryService.GetAllCategoriesAsync(storeId: (await _storeContext.GetCurrentStoreAsync()).Id);
+            var categories = allCategories.Where(c => c.ParentCategoryId == rootCategoryId).OrderBy(c => c.DisplayOrder).ToList();
+            foreach (var category in categories)
+            {
+                var categoryModel = new CategorySimpleModel
+                {
+                    Id = category.Id,
+                    Name = await _localizationService.GetLocalizedAsync(category, x => x.Name),
+                    SeName = await _urlRecordService.GetSeNameAsync(category),
+                    IncludeInTopMenu = category.IncludeInTopMenu
+                };
+
+                //number of products in each category
+                if (_catalogSettings.ShowCategoryProductNumber)
+                {
+                    var categoryIds = new List<int> { category.Id };
+                    //include subcategories
+                    if (_catalogSettings.ShowCategoryProductNumberIncludingSubcategories)
+                        categoryIds.AddRange(
+                            await _categoryService.GetChildCategoryIdsAsync(category.Id, (await _storeContext.GetCurrentStoreAsync()).Id));
+
+                    categoryModel.NumberOfProducts =
+                        await _productService.GetNumberOfProductsInCategoryAsync(categoryIds, (await _storeContext.GetCurrentStoreAsync()).Id);
+                }
+
+                if (loadSubCategories)
+                {
+                    var subCategories = await PrepareCategorySimpleModelsAsync(category.Id);
+                    categoryModel.SubCategories.AddRange(subCategories);
+                }
+
+                categoryModel.HaveSubCategories = categoryModel.SubCategories.Count > 0 &
+                    categoryModel.SubCategories.Any(x => x.IncludeInTopMenu);
+
+                result.Add(categoryModel);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Prepare category (simple) xml document
+        /// </summary>
+        /// <returns>Xml document of category (simple) models</returns>
+        protected virtual async Task<XDocument> PrepareCategoryXmlDocumentAsync()
+        {
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.CategoryXmlAllModelKey,
+                await _workContext.GetWorkingLanguageAsync(),
+                _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
+                await _storeContext.GetCurrentStoreAsync());
+
+            return await _staticCacheManager.GetAsync(cacheKey, async () =>
+            {
+                var categories = await PrepareCategorySimpleModelsAsync();
+
+                var xsSubmit = new XmlSerializer(typeof(List<CategorySimpleModel>));
+
+                await using var strWriter = new StringWriter();
+                using var writer = XmlWriter.Create(strWriter);
+                xsSubmit.Serialize(writer, categories);
+                var xml = strWriter.ToString();
+
+                return XDocument.Parse(xml);
+            });
+        }
+
+        /// <summary>
+        /// Prepare category (simple) models
+        /// </summary>
+        /// <returns>List of category (simple) models</returns>
+        protected virtual async Task<List<CategorySimpleModel>> PrepareCategorySimpleModelsAsync()
+        {
+            //load and cache them
+            var cacheKey = _staticCacheManager.PrepareKeyForDefaultCache(NopModelCacheDefaults.CategoryAllModelKey,
+                await _workContext.GetWorkingLanguageAsync(),
+                _customerService.GetCustomerRoleIdsAsync(await _workContext.GetCurrentCustomerAsync()),
+                await _storeContext.GetCurrentStoreAsync());
+
+            return await _staticCacheManager.GetAsync(cacheKey, async () => await PrepareCategorySimpleModelsAsync(0));
+        }
+
+        /// <summary>
+        /// Prepares the specification filter model
+        /// </summary>
+        /// <param name="selectedOptions">The selected options to filter the products</param>
+        /// <param name="availableOptions">The available options to filter the products</param>
+        /// <returns>The specification filter model</returns>
+        protected virtual async Task<SpecificationFilterModel> PrepareSpecificationFilterModel(IList<int> selectedOptions, IList<SpecificationAttributeOption> availableOptions)
+        {
+            var model = new SpecificationFilterModel();
+
+            if (availableOptions?.Any() == true)
+            {
+                model.Enabled = true;
+
+                var workingLanguage = await _workContext.GetWorkingLanguageAsync();
+
+                foreach (var option in availableOptions)
+                {
+                    var attributeFilter = model.Attributes.FirstOrDefault(model => model.Id == option.SpecificationAttributeId);
+                    if (attributeFilter == null)
+                    {
+                        var attribute = await _specificationAttributeService
+                            .GetSpecificationAttributeByIdAsync(option.SpecificationAttributeId);
+                        attributeFilter = new SpecificationAttributeFilterModel
+                        {
+                            Id = attribute.Id,
+                            Name = await _localizationService
+                                .GetLocalizedAsync(attribute, x => x.Name, workingLanguage.Id)
+                        };
+                        model.Attributes.Add(attributeFilter);
+                    }
+
+                    attributeFilter.Values.Add(new SpecificationAttributeValueFilterModel
+                    {
+                        Id = option.Id,
+                        Name = await _localizationService
+                            .GetLocalizedAsync(option, x => x.Name, workingLanguage.Id),
+                        Selected = selectedOptions?.Any(optionId => optionId == option.Id) == true,
+                        ColorSquaresRgb = option.ColorSquaresRgb
+                    });
+                }
+            }
+
+            return model;
+        }
+
+        /// <summary>
+        /// Prepares the manufacturer filter model
+        /// </summary>
+        /// <param name="selectedManufacturers">The selected manufacturers to filter the products</param>
+        /// <param name="availableManufacturers">The available manufacturers to filter the products</param>
+        /// <returns>The specification filter model</returns>
+        protected virtual async Task<ManufacturerFilterModel> PrepareSpecificationFilterModel(IList<int> selectedManufacturers, IList<Manufacturer> availableManufacturers)
+        {
+            var model = new ManufacturerFilterModel();
+
+            if (availableManufacturers?.Any() == true)
+            {
+                model.Enabled = true;
+
+                var workingLanguage = await _workContext.GetWorkingLanguageAsync();
+
+                foreach (var manufacturer in availableManufacturers)
+                {
+                    model.Manufacturers.Add(new SelectListItem
+                    {
+                        Value = manufacturer.Id.ToString(),
+                        Text = await _localizationService
+                            .GetLocalizedAsync(manufacturer, x => x.Name, workingLanguage.Id),
+                        Selected = selectedManufacturers?
+                            .Any(manufacturerId => manufacturerId == manufacturer.Id) == true
+                    });
+                }
+            }
+
+            return model;
+        }
+
+        /// <summary>
+        /// Prepare sorting options
+        /// </summary>
+        /// <param name="model">Catalog products model</param>
+        /// <param name="command">Model to get the catalog products</param>
+        protected virtual async Task PrepareSortingOptionsAsync(CatalogProductsModel model, GetCatalogProductsCommand command)
+        {
+            //set the order by position by default
+            model.OrderBy = command.OrderBy;
+            command.OrderBy = (int)ProductSortingEnum.Position;
+
+            //ensure that product sorting is enabled
+            if (!_catalogSettings.AllowProductSorting)
+                return;
+
+            //get active sorting options
+            var activeSortingOptionsIds = Enum.GetValues(typeof(ProductSortingEnum)).Cast<int>()
+                .Except(_catalogSettings.ProductSortingEnumDisabled).ToList();
+            if (!activeSortingOptionsIds.Any())
+                return;
+
+            //order sorting options
+            var orderedActiveSortingOptions = activeSortingOptionsIds
+                .Select(id => new { Id = id, Order = _catalogSettings.ProductSortingEnumDisplayOrder.TryGetValue(id, out var order) ? order : id })
+                .OrderBy(option => option.Order).ToList();
+
+            model.AllowProductSorting = true;
+            command.OrderBy = model.OrderBy ?? orderedActiveSortingOptions.FirstOrDefault().Id;
+
+            //prepare available model sorting options
+            foreach (var option in orderedActiveSortingOptions)
+            {
+                model.AvailableSortOptions.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetLocalizedEnumAsync((ProductSortingEnum)option.Id),
+                    Value = option.Id.ToString(),
+                    Selected = option.Id == command.OrderBy
+                });
+            }
+        }
+
+        /// <summary>
+        /// Prepare view modes
+        /// </summary>
+        /// <param name="model">Catalog products model</param>
+        /// <param name="command">Model to get the catalog products</param>
+        protected virtual async Task PrepareViewModesAsync(CatalogProductsModel model, GetCatalogProductsCommand command)
+        {
+            model.AllowProductViewModeChanging = _catalogSettings.AllowProductViewModeChanging;
+
+            var viewMode = !string.IsNullOrEmpty(command.ViewMode)
+                ? command.ViewMode
+                : _catalogSettings.DefaultViewMode;
+            model.ViewMode = viewMode;
+            if (model.AllowProductViewModeChanging)
+            {
+                //grid
+                model.AvailableViewModes.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.Grid"),
+                    Value = "grid",
+                    Selected = viewMode == "grid"
+                });
+                //list
+                model.AvailableViewModes.Add(new SelectListItem
+                {
+                    Text = await _localizationService.GetResourceAsync("Catalog.ViewMode.List"),
+                    Value = "list",
+                    Selected = viewMode == "list"
+                });
+            }
+        }
+
+        /// <summary>
+        /// Prepare page size options
+        /// </summary>
+        /// <param name="model">Catalog products model</param>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <param name="allowCustomersToSelectPageSize">Are customers allowed to select page size?</param>
+        /// <param name="pageSizeOptions">Page size options</param>
+        /// <param name="fixedPageSize">Fixed page size</param>
+        protected virtual Task PreparePageSizeOptionsAsync(CatalogProductsModel model, GetCatalogProductsCommand command,
+            bool allowCustomersToSelectPageSize, string pageSizeOptions, int fixedPageSize)
+        {
+            if (command.PageNumber <= 0)
+                command.PageNumber = 1;
+
+            model.AllowCustomersToSelectPageSize = false;
+            if (allowCustomersToSelectPageSize && pageSizeOptions != null)
+            {
+                var pageSizes = pageSizeOptions.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (pageSizes.Any())
+                {
+                    // get the first page size entry to use as the default (category page load) or if customer enters invalid value via query string
+                    if (command.PageSize <= 0 || !pageSizes.Contains(command.PageSize.ToString()))
+                    {
+                        if (int.TryParse(pageSizes.FirstOrDefault(), out var temp))
+                        {
+                            if (temp > 0)
+                                command.PageSize = temp;
+                        }
+                    }
+
+                    foreach (var pageSize in pageSizes)
+                    {
+                        if (!int.TryParse(pageSize, out var temp))
+                            continue;
+
+                        if (temp <= 0)
+                            continue;
+
+                        model.PageSizeOptions.Add(new SelectListItem
+                        {
+                            Text = pageSize,
+                            Value = pageSize,
+                            Selected = pageSize.Equals(command.PageSize.ToString(), StringComparison.InvariantCultureIgnoreCase)
+                        });
+                    }
+
+                    if (model.PageSizeOptions.Any())
+                    {
+                        model.PageSizeOptions = model.PageSizeOptions.OrderBy(x => int.Parse(x.Value)).ToList();
+                        model.AllowCustomersToSelectPageSize = true;
+
+                        if (command.PageSize <= 0)
+                            command.PageSize = int.Parse(model.PageSizeOptions.First().Value);
+                    }
+                }
+            }
+            else
+            {
+                //customer is not allowed to select a page size
+                command.PageSize = fixedPageSize;
+            }
+
+            //ensure pge size is specified
+            if (command.PageSize <= 0)
+            {
+                command.PageSize = fixedPageSize;
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Gets the price range converted to primary store currency
+        /// </summary>
+        /// <param name="command">Model to get the catalog products</param>
+        /// <returns>The <see cref="Task"/> containing the price range converted to primary store currency</returns>
+        protected virtual async Task<PriceRangeModel> GetConvertedPriceRangeAsync(GetCatalogProductsCommand command)
+        {
+            var result = new PriceRangeModel();
+
+            if (string.IsNullOrWhiteSpace(command.Price))
+                return result;
+
+            var fromTo = command.Price.Trim().Split(new[] { '-' });
+            if (fromTo.Length == 2)
+            {
+                var rawFromPrice = fromTo[0]?.Trim();
+                if (!string.IsNullOrEmpty(rawFromPrice) && decimal.TryParse(rawFromPrice, out var from))
+                    result.From = from;
+
+                var rawToPrice = fromTo[1]?.Trim();
+                if (!string.IsNullOrEmpty(rawToPrice) && decimal.TryParse(rawToPrice, out var to))
+                    result.To = to;
+
+                if (result.From > result.To)
+                    result.From = result.To;
+
+                var workingCurrency = await _workContext.GetWorkingCurrencyAsync();
+
+                if (result.From > 0)
+                {
+                    result.From = await _currencyService
+                        .ConvertToPrimaryStoreCurrencyAsync(result.From.Value, workingCurrency);
+                }
+
+                if (result.To > 0)
+                {
+                    result.To = await _currencyService
+                        .ConvertToPrimaryStoreCurrencyAsync(result.To.Value, workingCurrency);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Prepares the price range filter
+        /// </summary>
+        /// <param name="selectedPriceRange">The selected price range to filter the products</param>
+        /// <param name="availablePriceRange">The available price range to filter the products</param>
+        /// <returns>The price range filter</returns>
+        protected virtual async Task<PriceRangeFilterModel> PreparePriceRangeFilterAsync(PriceRangeModel selectedPriceRange, PriceRangeModel availablePriceRange)
+        {
+            var model = new PriceRangeFilterModel();
+
+            if ((!availablePriceRange.To.HasValue && !availablePriceRange.From.HasValue) ||
+                (availablePriceRange.To == 0 && availablePriceRange.From == 0))
+                return model;
+
+            if (!selectedPriceRange.From.HasValue ||
+                selectedPriceRange.From < availablePriceRange.From ||
+                selectedPriceRange.From > selectedPriceRange.To)
+                selectedPriceRange.From = availablePriceRange.From;
+
+            if (!selectedPriceRange.To.HasValue ||
+                selectedPriceRange.To > availablePriceRange.To ||
+                selectedPriceRange.To < selectedPriceRange.From)
+                selectedPriceRange.To = availablePriceRange.To;
+
+            var workingCurrency = await _workContext.GetWorkingCurrencyAsync();
+
+            if (availablePriceRange.From > 0)
+            {
+                availablePriceRange.From = await _currencyService
+                    .ConvertFromPrimaryStoreCurrencyAsync(availablePriceRange.From.Value, workingCurrency);
+            }
+
+            if (availablePriceRange.To > 0)
+            {
+                availablePriceRange.To = await _currencyService
+                    .ConvertFromPrimaryStoreCurrencyAsync(availablePriceRange.To.Value, workingCurrency);
+            }
+
+            if (selectedPriceRange.From > 0)
+            {
+                selectedPriceRange.From = await _currencyService
+                    .ConvertFromPrimaryStoreCurrencyAsync(selectedPriceRange.From.Value, workingCurrency);
+            }
+
+            if (selectedPriceRange.To > 0)
+            {
+                selectedPriceRange.To = await _currencyService
+                    .ConvertFromPrimaryStoreCurrencyAsync(selectedPriceRange.To.Value, workingCurrency);
+            }
+
+            model.Enabled = true;
+            model.AvailablePriceRange = availablePriceRange;
+            model.SelectedPriceRange = selectedPriceRange;
+
+            return model;
+        }
+
+        protected virtual CategorySimpleModel GetCategorySimpleModel(XElement elem)
+        {
+            var urlHelper = _urlHelperFactory.GetUrlHelper(_actionContextAccessor.ActionContext);
+
+            var model = new CategorySimpleModel
+            {
+                Id = int.Parse(elem.XPathSelectElement("Id").Value),
+                Name = elem.XPathSelectElement("Name").Value,
+                SeName = elem.XPathSelectElement("SeName").Value,
+
+                NumberOfProducts = !string.IsNullOrEmpty(elem.XPathSelectElement("NumberOfProducts").Value)
+                    ? int.Parse(elem.XPathSelectElement("NumberOfProducts").Value)
+                    : (int?)null,
+
+                IncludeInTopMenu = bool.Parse(elem.XPathSelectElement("IncludeInTopMenu").Value),
+                HaveSubCategories = bool.Parse(elem.XPathSelectElement("HaveSubCategories").Value),
+                Route = urlHelper.RouteUrl("Category", new { SeName = elem.XPathSelectElement("SeName").Value })
+            };
+
+            return model;
         }
 
         #endregion
