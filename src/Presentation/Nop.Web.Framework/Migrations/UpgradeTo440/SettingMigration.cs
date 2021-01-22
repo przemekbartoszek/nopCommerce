@@ -1,4 +1,6 @@
-﻿using FluentMigrator;
+﻿using System;
+using FluentMigrator;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Domain.Configuration;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Seo;
@@ -20,8 +22,9 @@ namespace Nop.Web.Framework.Migrations.UpgradeTo440
                 return;
 
             //do not use DI, because it produces exception on the installation process
-            var settingRepository = EngineContext.Current.Resolve<IRepository<Setting>>();
-            var settingService = EngineContext.Current.Resolve<ISettingService>();
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var settingRepository = scope.ServiceProvider.GetRequiredService<IRepository<Setting>>();
+            var settingService = scope.ServiceProvider.GetRequiredService<ISettingService>();
 
             //#4904 External authentication errors logging
             var externalAuthenticationSettings = settingService.LoadSettingAsync<ExternalAuthenticationSettings>().Result;

@@ -11,11 +11,11 @@ namespace Nop.Web
         public static async Task Main(string[] args)
         {
             await Host.CreateDefaultBuilder(args)
-                .UseDefaultServiceProvider((context, options) =>
-                {
-                    options.ValidateScopes = false;
-                    options.ValidateOnBuild = true;
-                })
+                //.UseDefaultServiceProvider((context, options) =>
+                //{
+                //    options.ValidateScopes = false;
+                //    options.ValidateOnBuild = true;
+                //})
                 .ConfigureWebHostDefaults(webBuilder => webBuilder
                     .ConfigureAppConfiguration(configuration => configuration.AddJsonFile(NopConfigurationDefaults.AppSettingsFilePath, true, true))
                     .UseStartup<Startup>())

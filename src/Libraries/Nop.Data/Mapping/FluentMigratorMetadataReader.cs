@@ -6,6 +6,7 @@ using FluentMigrator.Expressions;
 using LinqToDB.Mapping;
 using LinqToDB.Metadata;
 using LinqToDB.SqlQuery;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core;
 using Nop.Core.Infrastructure;
 using Nop.Data.Migrations;
@@ -27,7 +28,8 @@ namespace Nop.Data.Mapping
 
         public FluentMigratorMetadataReader()
         {
-            _migrationManager = EngineContext.Current.Resolve<IMigrationManager>();
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            _migrationManager = scope.ServiceProvider.GetRequiredService<IMigrationManager>();
         }
 
         #endregion

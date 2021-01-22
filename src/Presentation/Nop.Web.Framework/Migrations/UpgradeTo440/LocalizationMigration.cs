@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FluentMigrator;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Infrastructure;
 using Nop.Data;
 using Nop.Data.Migrations;
@@ -18,7 +20,8 @@ namespace Nop.Web.Framework.Migrations.UpgradeTo440
                 return;
 
             //do not use DI, because it produces exception on the installation process
-            var localizationService = EngineContext.Current.Resolve<ILocalizationService>();
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var localizationService = scope.ServiceProvider.GetRequiredService<ILocalizationService>();
 
             //use localizationService to add, update and delete localization resources
             localizationService.DeleteLocaleResourcesAsync(new List<string>
@@ -330,7 +333,7 @@ namespace Nop.Web.Framework.Migrations.UpgradeTo440
                 //</MFA #475>
             };
 
-            var languageService = EngineContext.Current.Resolve<ILanguageService>();
+            var languageService = scope.ServiceProvider.GetRequiredService<ILanguageService>();
             var languages = languageService.GetAllLanguagesAsync(true).Result;
             foreach (var lang in languages)
             {

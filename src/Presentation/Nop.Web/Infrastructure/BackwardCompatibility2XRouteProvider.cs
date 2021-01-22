@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Domain.Common;
 using Nop.Core.Infrastructure;
 using Nop.Data;
@@ -20,7 +22,9 @@ namespace Nop.Web.Infrastructure
         /// <param name="endpointRouteBuilder">Route builder</param>
         public void RegisterRoutes(IEndpointRouteBuilder endpointRouteBuilder)
         {
-            if (DataSettingsManager.IsDatabaseInstalled() && !EngineContext.Current.Resolve<CommonSettings>().SupportPreviousNopcommerceVersions)
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var commonSettings = scope.ServiceProvider.GetRequiredService<CommonSettings>();
+            if (DataSettingsManager.IsDatabaseInstalled() && !commonSettings.SupportPreviousNopcommerceVersions)
                 return;
 
             //products

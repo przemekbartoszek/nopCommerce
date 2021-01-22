@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Infrastructure;
 using Nop.Data;
 
@@ -38,7 +39,8 @@ namespace Nop.Services.Tasks
 
             _taskThreads.Clear();
 
-            var taskService = EngineContext.Current.Resolve<IScheduleTaskService>();
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var taskService = scope.ServiceProvider.GetRequiredService<IScheduleTaskService>();
             
             var scheduleTasks = taskService
                 .GetAllTasksAsync().Result

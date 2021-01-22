@@ -138,8 +138,11 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 options.Cookie.Name = $"{NopCookieDefaults.Prefix}{NopCookieDefaults.SessionCookie}";
                 options.Cookie.HttpOnly = true;
 
+                using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+                var storeContext = scope.ServiceProvider.GetRequiredService<IStoreContext>();
+
                 //whether to allow the use of session values from SSL protected page on the other store pages which are not
-                options.Cookie.SecurePolicy = DataSettingsManager.IsDatabaseInstalled() && EngineContext.Current.Resolve<IStoreContext>().GetCurrentStoreAsync().Result.SslEnabled
+                options.Cookie.SecurePolicy = DataSettingsManager.IsDatabaseInstalled() && storeContext.GetCurrentStoreAsync().Result.SslEnabled
                     ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.None;
             });
         }
@@ -361,12 +364,15 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
             if (!DataSettingsManager.IsDatabaseInstalled())
                 return;
 
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var commonSettings = scope.ServiceProvider.GetRequiredService<CommonSettings>();
+
             services
                 .AddWebMarkupMin(options =>
                 {
                     options.AllowMinificationInDevelopmentEnvironment = true;
                     options.AllowCompressionInDevelopmentEnvironment = true;
-                    options.DisableMinification = !EngineContext.Current.Resolve<CommonSettings>().EnableHtmlMinification;
+                    options.DisableMinification = !commonSettings.EnableHtmlMinification;
                     options.DisableCompression = true;
                     options.DisablePoweredByHttpHeaders = true;
                 })

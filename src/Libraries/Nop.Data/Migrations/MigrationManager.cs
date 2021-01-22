@@ -12,6 +12,7 @@ using FluentMigrator.Infrastructure;
 using FluentMigrator.Model;
 using FluentMigrator.Runner;
 using FluentMigrator.Runner.Initialization;
+using Microsoft.Extensions.DependencyInjection;
 using Nop.Core;
 using Nop.Core.Infrastructure;
 using Nop.Data.Mapping;
@@ -30,7 +31,6 @@ namespace Nop.Data.Migrations
         private readonly IFilteringMigrationSource _filteringMigrationSource;
         private readonly IMigrationRunner _migrationRunner;
         private readonly IMigrationRunnerConventions _migrationRunnerConventions;
-        private readonly IMigrationContext _migrationContext;
         private readonly ITypeFinder _typeFinder;
         private readonly Lazy<IVersionLoader> _versionLoader;
 
@@ -42,7 +42,6 @@ namespace Nop.Data.Migrations
             IFilteringMigrationSource filteringMigrationSource,
             IMigrationRunner migrationRunner,
             IMigrationRunnerConventions migrationRunnerConventions,
-            IMigrationContext migrationContext,
             ITypeFinder typeFinder)
         {
             _versionLoader = new Lazy<IVersionLoader>(() => EngineContext.Current.Resolve<IVersionLoader>());
@@ -62,7 +61,6 @@ namespace Nop.Data.Migrations
             _filteringMigrationSource = filteringMigrationSource;
             _migrationRunner = migrationRunner;
             _migrationRunnerConventions = migrationRunnerConventions;
-            _migrationContext = migrationContext;
             _typeFinder = typeFinder;
         }
 
@@ -161,7 +159,9 @@ namespace Nop.Data.Migrations
         /// <returns>The context of a migration while collecting up/down expressions</returns>
         protected IMigrationContext CreateNullMigrationContext()
         {
-            return new MigrationContext(new NullIfDatabaseProcessor(), _migrationContext.ServiceProvider, null, null);
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var provider = scope.ServiceProvider.GetService<IMigrationContext>();
+            return new MigrationContext(new NullIfDatabaseProcessor(), provider.ServiceProvider, null, null);
         }
 
         #endregion

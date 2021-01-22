@@ -34,8 +34,12 @@ namespace Nop.Services.Tasks
 
         static TaskThread()
         {
-            _scheduleTaskUrl = $"{EngineContext.Current.Resolve<IStoreContext>().GetCurrentStoreAsync().Result.Url}{NopTaskDefaults.ScheduleTaskPath}";
-            _timeout = EngineContext.Current.Resolve<CommonSettings>().ScheduleTaskRunTimeout;
+            using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+            var storeContext = scope.ServiceProvider.GetRequiredService<IStoreContext>();
+            var commonSettings = scope.ServiceProvider.GetRequiredService<CommonSettings>();
+
+            _scheduleTaskUrl = $"{storeContext.GetCurrentStoreAsync().Result.Url}{NopTaskDefaults.ScheduleTaskPath}";
+            _timeout = commonSettings.ScheduleTaskRunTimeout;
         }
 
         internal TaskThread()

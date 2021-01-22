@@ -222,7 +222,8 @@ namespace Nop.Core.Infrastructure
                     //try to resolve constructor parameters
                     var parameters = constructor.GetParameters().Select(parameter =>
                     {
-                        var service = Resolve(parameter.ParameterType);
+                        using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+                        var service = scope.ServiceProvider.GetRequiredService(parameter.ParameterType);
                         if (service == null)
                             throw new NopException("Unknown dependency");
                         return service;

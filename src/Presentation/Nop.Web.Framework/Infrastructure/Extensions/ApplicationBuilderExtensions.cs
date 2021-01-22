@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
@@ -56,9 +57,12 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 Services.Tasks.TaskManager.Instance.Initialize();
                 Services.Tasks.TaskManager.Instance.Start();
                 //log application start
-                engine.Resolve<ILogger>().InformationAsync("Application started").Wait();
 
-                var pluginService = engine.Resolve<IPluginService>();
+                using var scope = application.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger>();
+                logger.InformationAsync("Application started").Wait();
+
+                var pluginService = scope.ServiceProvider.GetRequiredService<IPluginService>();
 
                 //install plugins
                 pluginService.InstallPluginsAsync().Wait();
@@ -67,7 +71,7 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 pluginService.UpdatePluginsAsync().Wait();
 
                 //update nopCommerce core
-                var migrationManager = engine.Resolve<IMigrationManager>();
+                var migrationManager = scope.ServiceProvider.GetRequiredService<IMigrationManager>();
                 var assembly = Assembly.GetAssembly(typeof(ApplicationBuilderExtensions));
                 migrationManager.ApplyUpMigrations(assembly, true);
                 //update nopCommerce database
@@ -80,7 +84,7 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                     return;
 
                 //prevent save the update migrations into the DB during the developing process  
-                var versions = EngineContext.Current.Resolve<IRepository<MigrationVersionInfo>>();
+                var versions = scope.ServiceProvider.GetRequiredService<IRepository<MigrationVersionInfo>>();
                 versions.DeleteAsync(mvi => mvi.Description.StartsWith(string.Format(NopMigrationDefaults.UpdateMigrationDescriptionPrefix, NopVersion.FULL_VERSION)));
 
 #endif
@@ -212,7 +216,10 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
         public static void UseNopResponseCompression(this IApplicationBuilder application)
         {
             //whether to use compression (gzip by default)
-            if (DataSettingsManager.IsDatabaseInstalled() && EngineContext.Current.Resolve<CommonSettings>().UseResponseCompression)
+            using var scope = application.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var commonSettings =  scope.ServiceProvider.GetRequiredService<CommonSettings>();
+
+            if (DataSettingsManager.IsDatabaseInstalled() && commonSettings.UseResponseCompression)
                 application.UseResponseCompression();
         }
 
@@ -232,7 +239,8 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                     context.Context.Response.Headers.Append(HeaderNames.CacheControl, commonSettings.StaticFilesCacheControl);
             }
 
-            var fileProvider = EngineContext.Current.Resolve<INopFileProvider>();
+            using var scope = application.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            var fileProvider = scope.ServiceProvider.GetRequiredService<INopFileProvider>();
 
             //common static files
             application.UseStaticFiles(new StaticFileOptions { OnPrepareResponse = staticFileResponse });
@@ -255,7 +263,7 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
 
             if (DataSettingsManager.IsDatabaseInstalled())
             {
-                var securitySettings = EngineContext.Current.Resolve<SecuritySettings>();
+                var securitySettings = scope.ServiceProvider.GetRequiredService<SecuritySettings>();
                 if (!string.IsNullOrEmpty(securitySettings.PluginStaticFileExtensionsBlacklist))
                 {
                     var fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
@@ -352,7 +360,10 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                     return;
 
                 //prepare supported cultures
-                var cultures = (await EngineContext.Current.Resolve<ILanguageService>().GetAllLanguagesAsync())
+                using var scope = application.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                var languageService = scope.ServiceProvider.GetRequiredService<ILanguageService>();
+
+                var cultures = (await languageService.GetAllLanguagesAsync())
                     .OrderBy(language => language.DisplayOrder)
                     .Select(language => new CultureInfo(language.LanguageCulture)).ToList();
                 options.SupportedCultures = cultures;
@@ -372,7 +383,9 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
             application.UseEndpoints(endpoints =>
             {
                 //register all routes
-                EngineContext.Current.Resolve<IRoutePublisher>().RegisterRoutes(endpoints);
+                using var scope = application.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                var routePublisher = scope.ServiceProvider.GetRequiredService<IRoutePublisher>();
+                routePublisher.RegisterRoutes(endpoints);
             });
         }
 

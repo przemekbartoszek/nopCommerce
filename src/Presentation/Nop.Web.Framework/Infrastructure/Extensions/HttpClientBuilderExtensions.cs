@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Nop.Core.Domain.Security;
@@ -22,7 +23,9 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 var handler = new HttpClientHandler();
 
                 //whether proxy is enabled
-                var proxySettings = EngineContext.Current.Resolve<ProxySettings>();
+                using var scope = EngineContext.Current.Resolve<IServiceProvider>().CreateScope();
+                var proxySettings = scope.ServiceProvider.GetRequiredService<ProxySettings>();
+
                 if (!proxySettings.Enabled)
                     return handler;
 
