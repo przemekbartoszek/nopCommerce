@@ -63,7 +63,7 @@ namespace Nop.Services.Stores
         /// <returns>Lambda expression</returns>
         public virtual Expression<Func<TEntity, bool>> ApplyStoreMapping<TEntity>(int storeId) where TEntity : BaseEntity, IStoreMappingSupported
         {
-            return (entity) => !entity.LimitedToStores ||
+            return entity => !entity.LimitedToStores ||
                 (from storeMapping in _storeMappingRepository.Table
                  where storeMapping.StoreId == storeId && storeMapping.EntityId == entity.Id && storeMapping.EntityName == typeof(TEntity).Name
                  select storeMapping.EntityId).Any();

@@ -68,7 +68,7 @@ namespace Nop.Services.Security
         /// <returns>Lambda expression</returns>
         public virtual Expression<Func<TEntity, bool>> ApplyAcl<TEntity>(int[] customerRoleIds) where TEntity : BaseEntity, IAclSupported
         {
-            return (entity) => !entity.SubjectToAcl ||
+            return entity => !entity.SubjectToAcl ||
                 (from acl in _aclRecordRepository.Table
                  where acl.EntityId == entity.Id && acl.EntityName == typeof(TEntity).Name && customerRoleIds.Contains(acl.CustomerRoleId)
                  select acl.EntityId).Any();
