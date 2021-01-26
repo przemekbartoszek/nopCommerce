@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -14,6 +15,8 @@ using Microsoft.Net.Http.Headers;
 using Nop.Core;
 using Nop.Core.Configuration;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Configuration;
+using Nop.Core.Domain.Localization;
 using Nop.Core.Domain.Security;
 using Nop.Core.Infrastructure;
 using Nop.Data;
@@ -211,8 +214,11 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
         /// <param name="application">Builder for configuring an application's request pipeline</param>
         public static void UseNopResponseCompression(this IApplicationBuilder application)
         {
+            var useResponseCompression = bool.Parse(EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                .FirstOrDefault(x => x.Name.StartsWith($"{nameof(CommonSettings)}.{nameof(CommonSettings.UseResponseCompression)}", StringComparison.InvariantCultureIgnoreCase)).Value);
+
             //whether to use compression (gzip by default)
-            if (DataSettingsManager.IsDatabaseInstalled() && EngineContext.Current.Resolve<CommonSettings>().UseResponseCompression)
+            if (DataSettingsManager.IsDatabaseInstalled() && useResponseCompression)
                 application.UseResponseCompression();
         }
 
@@ -227,9 +233,10 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 if (!DataSettingsManager.IsDatabaseInstalled())
                     return;
 
-                var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
-                if (!string.IsNullOrEmpty(commonSettings.StaticFilesCacheControl))
-                    context.Context.Response.Headers.Append(HeaderNames.CacheControl, commonSettings.StaticFilesCacheControl);
+                var staticFilesCacheControl = EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                    .FirstOrDefault(x => x.Name.StartsWith($"{nameof(CommonSettings)}.{nameof(CommonSettings.StaticFilesCacheControl)}", StringComparison.InvariantCultureIgnoreCase)).Value;
+                if (!string.IsNullOrEmpty(staticFilesCacheControl))
+                    context.Context.Response.Headers.Append(HeaderNames.CacheControl, staticFilesCacheControl);
             }
 
             var fileProvider = EngineContext.Current.Resolve<INopFileProvider>();
@@ -255,12 +262,14 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
 
             if (DataSettingsManager.IsDatabaseInstalled())
             {
-                var securitySettings = EngineContext.Current.Resolve<SecuritySettings>();
-                if (!string.IsNullOrEmpty(securitySettings.PluginStaticFileExtensionsBlacklist))
+                var pluginStaticFileExtensionsBlacklist = EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                    .FirstOrDefault(x => x.Name.StartsWith($"{nameof(SecuritySettings)}.{nameof(SecuritySettings.PluginStaticFileExtensionsBlacklist)}", StringComparison.InvariantCultureIgnoreCase)).Value;
+
+                if (!string.IsNullOrEmpty(pluginStaticFileExtensionsBlacklist))
                 {
                     var fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
 
-                    foreach (var ext in securitySettings.PluginStaticFileExtensionsBlacklist
+                    foreach (var ext in pluginStaticFileExtensionsBlacklist
                         .Split(';', ',')
                         .Select(e => e.Trim().ToLower())
                         .Select(e => $"{(e.StartsWith(".") ? string.Empty : ".")}{e}")
@@ -352,9 +361,11 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                     return;
 
                 //prepare supported cultures
-                var cultures = (await EngineContext.Current.Resolve<ILanguageService>().GetAllLanguagesAsync())
+
+                var cultures = (await EngineContext.Current.Resolve<IRepository<Language>>().GetAllAsync(x => x))
                     .OrderBy(language => language.DisplayOrder)
                     .Select(language => new CultureInfo(language.LanguageCulture)).ToList();
+
                 options.SupportedCultures = cultures;
                 options.DefaultRequestCulture = new RequestCulture(cultures.FirstOrDefault());
 

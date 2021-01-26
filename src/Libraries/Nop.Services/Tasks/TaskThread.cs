@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Nop.Core;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Configuration;
 using Nop.Core.Domain.Tasks;
 using Nop.Core.Http;
 using Nop.Core.Infrastructure;
+using Nop.Data;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 
@@ -34,8 +37,14 @@ namespace Nop.Services.Tasks
 
         static TaskThread()
         {
+            var settingRepository = EngineContext.Current.Resolve<IRepository<Setting>>();
+
             _scheduleTaskUrl = $"{EngineContext.Current.Resolve<IStoreContext>().GetCurrentStoreAsync().Result.Url}{NopTaskDefaults.ScheduleTaskPath}";
-            _timeout = EngineContext.Current.Resolve<CommonSettings>().ScheduleTaskRunTimeout;
+
+            _ = int.TryParse(EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                .FirstOrDefault(x => x.Name.StartsWith($"{nameof(CommonSettings)}.{nameof(CommonSettings.ScheduleTaskRunTimeout)}", StringComparison.InvariantCultureIgnoreCase)).Value, out var timeout);
+
+            _timeout = timeout;
         }
 
         internal TaskThread()

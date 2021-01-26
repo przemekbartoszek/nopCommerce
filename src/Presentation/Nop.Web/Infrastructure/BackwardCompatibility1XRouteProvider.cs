@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Linq;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Data;
 using Nop.Web.Framework.Mvc.Routing;
@@ -20,7 +23,10 @@ namespace Nop.Web.Infrastructure
         /// <param name="endpointRouteBuilder">Route builder</param>
         public void RegisterRoutes(IEndpointRouteBuilder endpointRouteBuilder)
         {
-            if (DataSettingsManager.IsDatabaseInstalled() && !EngineContext.Current.Resolve<CommonSettings>().SupportPreviousNopcommerceVersions)
+            var supportPreviousNopcommerceVersions = bool.Parse(EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                .FirstOrDefault(x => x.Name.StartsWith($"{nameof(CommonSettings)}.{nameof(CommonSettings.SupportPreviousNopcommerceVersions)}", StringComparison.InvariantCultureIgnoreCase)).Value);
+
+            if (DataSettingsManager.IsDatabaseInstalled() && !supportPreviousNopcommerceVersions)
                 return;
 
             //all old aspx URLs

@@ -17,6 +17,7 @@ using Newtonsoft.Json.Serialization;
 using Nop.Core;
 using Nop.Core.Configuration;
 using Nop.Core.Domain.Common;
+using Nop.Core.Domain.Configuration;
 using Nop.Core.Http;
 using Nop.Core.Infrastructure;
 using Nop.Core.Redis;
@@ -366,7 +367,8 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 {
                     options.AllowMinificationInDevelopmentEnvironment = true;
                     options.AllowCompressionInDevelopmentEnvironment = true;
-                    options.DisableMinification = !EngineContext.Current.Resolve<CommonSettings>().EnableHtmlMinification;
+                    options.DisableMinification = !bool.Parse(EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result
+                        .FirstOrDefault(x => x.Name.StartsWith($"{nameof(CommonSettings)}.{nameof(CommonSettings.EnableHtmlMinification)}", StringComparison.InvariantCultureIgnoreCase)).Value);
                     options.DisableCompression = true;
                     options.DisablePoweredByHttpHeaders = true;
                 })

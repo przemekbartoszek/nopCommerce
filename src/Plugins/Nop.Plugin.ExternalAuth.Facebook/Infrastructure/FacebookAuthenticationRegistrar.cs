@@ -1,9 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.DependencyInjection;
+using Nop.Core.Domain.Configuration;
 using Nop.Core.Infrastructure;
+using Nop.Data;
 using Nop.Services.Authentication.External;
 
 namespace Nop.Plugin.ExternalAuth.Facebook.Infrastructure
@@ -22,10 +26,10 @@ namespace Nop.Plugin.ExternalAuth.Facebook.Infrastructure
             builder.AddFacebook(FacebookDefaults.AuthenticationScheme, options =>
             {
                 //set credentials
-                var settings = EngineContext.Current.Resolve<FacebookExternalAuthSettings>();
-                options.AppId = settings.ClientKeyIdentifier;
-                options.AppSecret = settings.ClientSecret;
-
+                var settings = EngineContext.Current.Resolve<IRepository<Setting>>().GetAllAsync(x => x).Result;
+                options.AppId = settings.FirstOrDefault(x => x.Name.StartsWith($"{nameof(FacebookExternalAuthSettings)}.{nameof(FacebookExternalAuthSettings.ClientKeyIdentifier)}", StringComparison.InvariantCultureIgnoreCase)).Value;
+                options.AppSecret = settings.FirstOrDefault(x => x.Name.StartsWith($"{nameof(FacebookExternalAuthSettings)}.{nameof(FacebookExternalAuthSettings.ClientSecret)}", StringComparison.InvariantCultureIgnoreCase)).Value;
+                
                 //store access and refresh tokens for the further usage
                 options.SaveTokens = true;
 
