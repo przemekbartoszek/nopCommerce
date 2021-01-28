@@ -284,6 +284,16 @@ namespace Nop.Web.Framework.Migrations.UpgradeTo440
                 //#5213
                 ["Admin.System.Log.List.PremiumSupport"] = "Have questions or need help? Get dedicated support from the nopCommerce team with a guaranteed response within 24 hours. Please find more about our premium support services <a href=\"https://www.nopcommerce.com/nopcommerce-premium-support-services?utm_source=admin-panel&utm_medium=menu&utm_campaign=premium_support&utm_content=log-list\" target=\"_blank\">here</a>.",
                 ["Admin.System.Log.PremiumSupport"] = "Have questions or need help? Get dedicated support from the nopCommerce team with a guaranteed response within 24 hours. Please find more about our premium support services <a href=\"https://www.nopcommerce.com/nopcommerce-premium-support-services?utm_source=admin-panel&utm_medium=menu&utm_campaign=premium_support&utm_content=log-details\" target=\"_blank\">here</a>.",
+
+                //#4196
+                ["Admin.Configuration.AppSettings.Common.PluginStaticFileExtensionsBlacklist"] = "Plugin static file extensions blacklist",
+                ["Admin.Configuration.AppSettings.Common.PluginStaticFileExtensionsBlacklist.Hint"] = "Specify the blacklist of static file extension for plugin directories.",
+                ["Admin.Configuration.AppSettings.Common.ScheduleTaskRunTimeout"] = "Schedule task run timeout",
+                ["Admin.Configuration.AppSettings.Common.ScheduleTaskRunTimeout.Hint"] = "The length of time, in milliseconds, before the running schedule task times out. Set null to use default value.",
+                ["Admin.Configuration.AppSettings.Common.StaticFilesCacheControl"] = "Static files cache control",
+                ["Admin.Configuration.AppSettings.Common.StaticFilesCacheControl.Hint"] = "Specify a value of 'Cache - Control' header value for static content (in seconds).",
+                ["Admin.Configuration.AppSettings.Common.SupportPreviousNopcommerceVersions"] = "Support previous nopCommerce versions",
+                ["Admin.Configuration.AppSettings.Common.SupportPreviousNopcommerceVersions.Hint"] = "Specify a value indicating whether we should support previous nopCommerce versions (it can slightly improve performance).",
             }).Wait();
 
             // rename locales

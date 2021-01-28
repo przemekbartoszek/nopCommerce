@@ -14,7 +14,6 @@ using Microsoft.Net.Http.Headers;
 using Nop.Core;
 using Nop.Core.Configuration;
 using Nop.Core.Domain.Common;
-using Nop.Core.Domain.Security;
 using Nop.Core.Infrastructure;
 using Nop.Data;
 using Nop.Data.Migrations;
@@ -227,9 +226,9 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 if (!DataSettingsManager.IsDatabaseInstalled())
                     return;
 
-                var commonSettings = EngineContext.Current.Resolve<CommonSettings>();
-                if (!string.IsNullOrEmpty(commonSettings.StaticFilesCacheControl))
-                    context.Context.Response.Headers.Append(HeaderNames.CacheControl, commonSettings.StaticFilesCacheControl);
+                var appSettings = EngineContext.Current.Resolve<AppSettings>();
+                if (!string.IsNullOrEmpty(appSettings.CommonConfig.StaticFilesCacheControl))
+                    context.Context.Response.Headers.Append(HeaderNames.CacheControl, appSettings.CommonConfig.StaticFilesCacheControl);
             }
 
             var fileProvider = EngineContext.Current.Resolve<INopFileProvider>();
@@ -255,12 +254,12 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
 
             if (DataSettingsManager.IsDatabaseInstalled())
             {
-                var securitySettings = EngineContext.Current.Resolve<SecuritySettings>();
-                if (!string.IsNullOrEmpty(securitySettings.PluginStaticFileExtensionsBlacklist))
+                var appSettings = EngineContext.Current.Resolve<AppSettings>();
+                if (!string.IsNullOrEmpty(appSettings.CommonConfig.PluginStaticFileExtensionsBlacklist))
                 {
                     var fileExtensionContentTypeProvider = new FileExtensionContentTypeProvider();
 
-                    foreach (var ext in securitySettings.PluginStaticFileExtensionsBlacklist
+                    foreach (var ext in appSettings.CommonConfig.PluginStaticFileExtensionsBlacklist
                         .Split(';', ',')
                         .Select(e => e.Trim().ToLower())
                         .Select(e => $"{(e.StartsWith(".") ? string.Empty : ".")}{e}")
