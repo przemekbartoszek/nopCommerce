@@ -290,7 +290,7 @@ namespace Nop.Plugin.Api.Controllers
             // Inserting the new product
             var product = _factory.Initialize();
             productDelta.Merge(product);
-            
+            product.ProductTemplateId = product.ProductType == ProductType.SimpleProduct ? 1 : 2;
             _productService.InsertProduct(product);
 
             UpdateProductPictures(product, productDelta.Dto.Images);
@@ -461,7 +461,7 @@ namespace Nop.Plugin.Api.Controllers
                 else
                 {
                     // add new product picture
-                    var newPicture = PictureService.InsertPicture(imageDto.Binary, imageDto.MimeType, string.Empty);
+                    var newPicture = PictureService.InsertPicture(imageDto.Binary, imageDto.MimeType, imageDto.SeoFilename);
                     _productService.InsertProductPicture(new ProductPicture
                     {
                         PictureId = newPicture.Id,
