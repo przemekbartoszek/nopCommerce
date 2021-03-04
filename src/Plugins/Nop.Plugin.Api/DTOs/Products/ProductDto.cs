@@ -490,6 +490,18 @@ namespace Nop.Plugin.Api.DTO.Products
         [JsonProperty("updated_on_utc")]
         public DateTime? UpdatedOnUtc { get; set; }
 
+        [JsonProperty("supplier_price")]
+        public decimal? SupplierPrice { get; set; }
+
+        [JsonProperty("supplier_price_currency")]
+        public string SupplierPriceCurrency { get; set; }
+
+        [JsonProperty("supplier")]
+        public string Supplier { get; set; }
+
+        [JsonProperty("last_price_refresh")]
+        public DateTime? LastPriceRefresh { get; set; }
+
         /// <summary>
         /// Gets or sets the product type
         /// </summary>

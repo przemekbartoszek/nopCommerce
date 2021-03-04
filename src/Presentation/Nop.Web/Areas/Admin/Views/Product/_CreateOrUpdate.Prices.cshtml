@@ -72,6 +72,39 @@
                     <span asp-validation-for="Price"></span>
                 </div>
             </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="SupplierPrice" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="SupplierPrice" />
+                    <span asp-validation-for="SupplierPrice"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="SupplierPriceCurrency" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="SupplierPriceCurrency" />
+                </div>
+            </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <nop-label asp-for="Supplier" />
+            </div>
+            <div class="col-md-9">
+                <nop-editor asp-for="Supplier" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <nop-label asp-for="LastPriceRefresh" />
+            </div>
+            <div class="col-md-9">
+                <nop-editor asp-for="LastPriceRefresh" />
+            </div>
+        </div>
             <div class="form-group @(Model.ProductEditorSettingsModel.OldPrice ? null : "advanced-setting")">
                 <div class="col-md-3">
                     <nop-label asp-for="OldPrice" />
