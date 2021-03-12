@@ -63,15 +63,24 @@
 <div class="panel-group">
     <div class="panel">
         <div class="panel-body">
-            <div class="form-group">
-                <div class="col-md-3">
-                    <nop-label asp-for="Price" />
-                </div>
-                <div class="col-md-9">
-                    <nop-editor asp-for="Price" asp-postfix="@Model.PrimaryStoreCurrencyCode" />
-                    <span asp-validation-for="Price"></span>
-                </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <nop-label asp-for="Price" />
             </div>
+            <div class="col-md-9">
+                <nop-editor asp-for="Price" asp-postfix="@Model.PrimaryStoreCurrencyCode" />
+                <span asp-validation-for="Price"></span>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <nop-label asp-for="NetPrice" />
+            </div>
+            <div class="col-md-9">
+                <nop-editor asp-for="NetPrice" />
+                <span asp-validation-for="NetPrice"></span>
+            </div>
+        </div>
             <div class="form-group">
                 <div class="col-md-3">
                     <nop-label asp-for="SupplierPrice" />
@@ -89,20 +98,44 @@
                     <nop-editor asp-for="SupplierPriceCurrency" />
                 </div>
             </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="Supplier" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="Supplier" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="LastPriceRefresh" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="LastPriceRefresh" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="Margin" />
+                </div>
+                <div class="col-md-9">
+                    <nop-editor asp-for="Margin" />
+                </div>
+            </div>
         <div class="form-group">
             <div class="col-md-3">
-                <nop-label asp-for="Supplier" />
+                <nop-label asp-for="MaxPrice" />
             </div>
             <div class="col-md-9">
-                <nop-editor asp-for="Supplier" />
+                <nop-editor asp-for="MaxPrice" />
             </div>
         </div>
         <div class="form-group">
             <div class="col-md-3">
-                <nop-label asp-for="LastPriceRefresh" />
+                <nop-label asp-for="AutoCalculatePrice" />
             </div>
             <div class="col-md-9">
-                <nop-editor asp-for="LastPriceRefresh" />
+                <nop-editor asp-for="AutoCalculatePrice" />
             </div>
         </div>
             <div class="form-group @(Model.ProductEditorSettingsModel.OldPrice ? null : "advanced-setting")">

@@ -43,6 +43,8 @@ using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Plugins.Marketplace;
 using Nop.Services.Polls;
+using Nop.Services.Prices;
+using Nop.Services.Prices.CurrencyExchange;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Shipping;
@@ -244,6 +246,9 @@ namespace Nop.Web.Framework.Infrastructure
             builder.RegisterType<TaxPluginManager>().As<ITaxPluginManager>().InstancePerLifetimeScope();
 
             builder.RegisterType<ActionContextAccessor>().As<IActionContextAccessor>().InstancePerLifetimeScope();
+
+            builder.RegisterType<AutoPriceCalculationService>().As<IAutoPriceCalculationService>().InstancePerLifetimeScope();
+            builder.RegisterType<CurrencyExchangeService>().As<ICurrencyExchangeService>().InstancePerLifetimeScope();
 
             //register all settings
             builder.RegisterSource(new SettingsSource());

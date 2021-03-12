@@ -2,4 +2,7 @@
 <LocaleResource Name="Admin.Catalog.Products.Fields.SupplierPrice"><Value>Cena dostawcy</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.SupplierPriceCurrency"><Value>Waluta ceny dostawcy</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.Supplier"><Value>Dostawca</Value></LocaleResource>
-<LocaleResource Name="Admin.Catalog.Products.Fields.LastPriceRefresh"><Value>Ostatnie odświeżenie ceny</Value></LocaleResource></Language>
+<LocaleResource Name="Admin.Catalog.Products.Fields.Margin"><Value>Marża</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.MaxPrice"><Value>Maksymalna dopuszczalna cena</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.NetPrice"><Value>Cena netto</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.AutoCalculatePrice"><Value>Automatyczne przeliczanie ceny</Value></LocaleResource></Language>

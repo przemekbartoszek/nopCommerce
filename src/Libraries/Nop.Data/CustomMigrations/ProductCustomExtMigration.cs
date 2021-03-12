@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using FluentMigrator;
+﻿using FluentMigrator;
 using Nop.Core.Domain.Catalog;
 using Nop.Data.Migrations;
 
-namespace Nop.Data.Mapping.Builders.Catalog
+namespace Nop.Data.CustomMigrations
 {
     [NopMigration("2021/03/03 16:00:00", "Supplier price")]
-    public class ProductCustomExtBuilder : AutoReversingMigration
+    public class ProductCustomExtMigration : AutoReversingMigration
     {
         public override void Up()
         {

@@ -12347,6 +12347,15 @@ namespace Nop.Services.Installation
                     Type = "Nop.Services.Directory.UpdateExchangeRateTask, Nop.Services",
                     Enabled = true,
                     StopOnError = false
+                },
+                new ScheduleTask
+                {
+                    Name = "Update auto prices",
+                    //60 minutes
+                    Seconds = 3600 * 24,
+                    Type = "Nop.Services.Prices.PriceCalculationTask, Nop.Services",
+                    Enabled = true,
+                    StopOnError = false
                 }
             };
 

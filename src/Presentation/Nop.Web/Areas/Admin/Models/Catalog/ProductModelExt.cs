@@ -19,5 +19,17 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.LastPriceRefresh")]
         public DateTime? LastPriceRefresh { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.Margin")]
+        public decimal? Margin { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.MaxPrice")]
+        public decimal? MaxPrice { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.NetPrice")]
+        public decimal NetPrice { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.AutoCalculatePrice")]
+        public bool AutoCalculatePrice { get; set; }
     }
 }

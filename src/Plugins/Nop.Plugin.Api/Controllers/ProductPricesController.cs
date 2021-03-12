@@ -68,18 +68,23 @@ namespace Nop.Plugin.Api.Controllers
                 return Error(HttpStatusCode.NotFound, "product", "not found");
             }
 
+            product.NetPrice = productDelta.Dto.NetPrice;
             product.Price = productDelta.Dto.Price;
             product.SupplierPrice = productDelta.Dto.SupplierPrice;
             product.Supplier = productDelta.Dto.Supplier;
             product.SupplierPriceCurrency = productDelta.Dto.SupplierPriceCurrency;
             product.LastPriceRefresh = productDelta.Dto.LastPriceRefresh;
+            product.Margin = productDelta.Dto.Margin;
+            product.MaxPrice = productDelta.Dto.MaxPrice;
+            product.AutoCalculatePrice = productDelta.Dto.AutoCalculatePrice;
 
             product.UpdatedOnUtc = DateTime.UtcNow;
             _productService.UpdateProduct(product);
 
             CustomerActivityService.InsertActivity("APIService", $"Update product: '{product.Sku}' price: {productDelta.Dto.Price} ", product);
-
-            return new RawJsonActionResult(productDelta.Dto);
+            var result = new ProductPricesRootObjectDto();
+            result.Products.Add(productDelta.Dto);
+            return new RawJsonActionResult(JsonFieldsSerializer.Serialize(result, string.Empty));
 
 
         }
