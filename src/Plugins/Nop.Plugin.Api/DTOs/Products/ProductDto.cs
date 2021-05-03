@@ -502,6 +502,9 @@ namespace Nop.Plugin.Api.DTO.Products
         [JsonProperty("last_price_refresh")]
         public DateTime? LastPriceRefresh { get; set; }
 
+        [JsonProperty("waiting_for_delivery")]
+        public bool WaitingForDelivery { get; set; }
+
         /// <summary>
         /// Gets or sets the product type
         /// </summary>

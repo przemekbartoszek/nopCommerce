@@ -37,5 +37,8 @@ namespace Nop.Plugin.Api.DTOs.Products
 
         [JsonProperty("auto_calculate_price")]
         public bool AutoCalculatePrice { get; set; }
+
+        [JsonProperty("waiting_for_delivery")]
+        public bool WaitingForDelivery { get; set; }
     }
 }

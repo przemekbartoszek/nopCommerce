@@ -28,6 +28,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Microsoft.AspNetCore.Authorization;
 using static Nop.Plugin.Api.Infrastructure.Constants;
 
 namespace Nop.Plugin.Api.Controllers
@@ -272,6 +273,39 @@ namespace Nop.Plugin.Api.Controllers
             return new RawJsonActionResult(json);
         }
 
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("/api/product/{id}")]
+        [ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [GetRequestsErrorInterceptorActionFilter]
+        public IActionResult GetProductById0(int id)
+        {
+            if (id <= 0)
+            {
+                return Error(HttpStatusCode.BadRequest, "id", "invalid id");
+            }
+
+            var product = _productApiService.GetProductById(id);
+
+            if (product == null)
+            {
+                return Error(HttpStatusCode.NotFound, "product", "not found");
+            }
+
+            var productDto = _dtoHelper.PrepareProductDTO(product);
+
+            var productsRootObject = new ProductsRootObjectDto();
+
+            productsRootObject.Products.Add(productDto);
+
+            var json = JsonFieldsSerializer.Serialize(productsRootObject, "Id");
+
+            return new RawJsonActionResult(json);
+        }
+
         [HttpPost]
         [Route("/api/products")]
         [ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
@@ -310,7 +344,6 @@ namespace Nop.Plugin.Api.Controllers
             UpdateDiscountMappings(product, productDelta.Dto.DiscountIds);
 
             UpdateStoreMappings(product, productDelta.Dto.StoreIds);
-
             _productService.UpdateProduct(product);
 
             CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.AddNewProduct"), product);
@@ -395,6 +428,52 @@ namespace Nop.Plugin.Api.Controllers
             
             
         }
+
+        [HttpPut]
+        [Route("/api/product_relations__/{id}")]
+        [ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorsRootObject), 422)]
+        [ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
+        public IActionResult UpdateProductRelations([ModelBinder(typeof(JsonModelBinder<ProductDto>))] Delta<ProductDto> productDelta)
+        {
+            // Here we display the errors if the validation has failed at some point.
+            if (!ModelState.IsValid)
+            {
+                return Error();
+            }
+            CustomerActivityService.InsertActivity("APIService", "Starting Product Update", null);
+
+            var product = _productApiService.GetProductById(productDelta.Dto.Id);
+
+            if (product == null)
+            {
+                return Error(HttpStatusCode.NotFound, "product", "not found");
+            }
+
+            productDelta.Merge(product);
+
+
+            UpdateAssociatedProducts(product, productDelta.Dto.AssociatedProductIds);
+
+
+            CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.UpdateProduct"), product);
+
+            // Preparing the result dto of the new product
+            var productDto = _dtoHelper.PrepareProductDTO(product);
+
+            var productsRootObject = new ProductsRootObjectDto();
+
+            productsRootObject.Products.Add(productDto);
+
+            var json = JsonFieldsSerializer.Serialize(productsRootObject, string.Empty);
+
+            return new RawJsonActionResult(json);
+
+
+        }
+
 
         [HttpDelete]
         [Route("/api/products/{id}")]

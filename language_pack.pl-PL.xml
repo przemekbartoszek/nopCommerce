@@ -5,4 +5,5 @@
 <LocaleResource Name="Admin.Catalog.Products.Fields.Margin"><Value>Marża</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.MaxPrice"><Value>Maksymalna dopuszczalna cena</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.NetPrice"><Value>Cena netto</Value></LocaleResource>
-<LocaleResource Name="Admin.Catalog.Products.Fields.AutoCalculatePrice"><Value>Automatyczne przeliczanie ceny</Value></LocaleResource></Language>
+<LocaleResource Name="Admin.Catalog.Products.Fields.AutoCalculatePrice"><Value>Automatyczne przeliczanie ceny</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.WaitingForDelivery"><Value>Czeka na dostawę</Value></LocaleResource></Language>

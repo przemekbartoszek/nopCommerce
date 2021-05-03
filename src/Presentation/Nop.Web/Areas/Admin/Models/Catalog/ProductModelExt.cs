@@ -31,5 +31,8 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.AutoCalculatePrice")]
         public bool AutoCalculatePrice { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.WaitingForDelivery")]
+        public bool WaitingForDelivery { get; set; }
     }
 }
