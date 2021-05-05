@@ -13,7 +13,7 @@ namespace Nop.Plugin.Api.Models.ManufacturersParameters
         public ManufacturersParametersModel()
         {
             Ids = null;
-            Limit = Configurations.DefaultLimit;
+            Limit = 250;//Configurations.DefaultLimit;
             Page = Configurations.DefaultPageValue;
             SinceId = Configurations.DefaultSinceId;
             Fields = string.Empty;

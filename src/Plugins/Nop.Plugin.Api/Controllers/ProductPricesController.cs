@@ -123,6 +123,7 @@ namespace Nop.Plugin.Api.Controllers
 
             UpdateRelatedProducts(product, productDelta.Dto.RelatedProductIds);
             UpdateCrossProducts(product, productDelta.Dto.CrossProductIds);
+            //UpdateAssociatedProducts(product, productDelta.Dto.AssociatedProductIds);
 
             CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.UpdateProduct"), product);
 
@@ -139,6 +140,33 @@ namespace Nop.Plugin.Api.Controllers
 
 
         }
+
+        //private void UpdateAssociatedProducts(Product product, List<int> passedAssociatedProductIds)
+        //{
+        //    if (passedAssociatedProductIds == null)
+        //        return;
+
+        //    var relatedProducts = _productService.GetRelatedProductsByProductId1(product.Id, showHidden: true);
+
+        //    var noLongerRelatedProducts = relatedProducts.Where(p => !passedAssociatedProductIds.Contains(p.ProductId2));
+
+        //    // update all products that are no longer associated with our product
+        //    foreach (var noLongerRelatedProduct in noLongerRelatedProducts)
+        //    {
+        //        _productService.DeleteRelatedProduct(noLongerRelatedProduct);
+        //    }
+
+        //    var newRelatedProducts = passedAssociatedProductIds.Where(x => relatedProducts.All(r => r.ProductId2 != x));
+        //    foreach (var newRelatedProductId in newRelatedProducts)
+        //    {
+        //        _productService.InsertRelatedProduct(new RelatedProduct
+        //        {
+        //            DisplayOrder = 1,
+        //            ProductId1 = product.Id,
+        //            ProductId2 = newRelatedProductId
+        //        });
+        //    }
+        //}
 
         private  void UpdateRelatedProducts(Product product, List<int> passedRelatedProductIds)
         {

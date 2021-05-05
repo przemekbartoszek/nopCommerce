@@ -12,5 +12,9 @@ namespace Nop.Plugin.Api.DTOs.Products
 
         [JsonProperty("cross_productIds")]
         public List<int> CrossProductIds { get; set; }
+
+        [JsonProperty("associated_productIds")]
+        public List<int> AssociatedProductIds { get; set; }
+
     }
 }

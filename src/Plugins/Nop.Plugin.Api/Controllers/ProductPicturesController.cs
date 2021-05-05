@@ -118,17 +118,22 @@ namespace Nop.Plugin.Api.Controllers
             CustomerActivityService.InsertActivity("APIService", string.Format("Attempting to create picture with name {0}.", productPictureDelta.Dto.SeoFilename), null);
 
             var newPicture = PictureService.InsertPicture(Convert.FromBase64String(productPictureDelta.Dto.Attachment), productPictureDelta.Dto.MimeType, productPictureDelta.Dto.SeoFilename);
-
-            var productPicture = new ProductPicture()
+            ProductPicture productPicture = null;
+            if (productPictureDelta.Dto.ProductIds?.Any() == true)
             {
-                PictureId = newPicture.Id,
-                ProductId = productPictureDelta.Dto.ProductId,
-                DisplayOrder = productPictureDelta.Dto.Position
-            };
+                foreach (var productId in productPictureDelta.Dto.ProductIds)
+                {
+                    productPicture = new ProductPicture()
+                    {
+                        PictureId = newPicture.Id,
+                        ProductId = productId,
+                        DisplayOrder = productPictureDelta.Dto.Position
+                    };
+                    _productService.InsertProductPicture(productPicture);
+                }
+            }
 
-            _productService.InsertProductPicture(productPicture);
-
-            var product = _productService.GetProductById(productPictureDelta.Dto.ProductId);
+            var product = _productService.GetProductById(productPictureDelta.Dto.ProductIds.First());
             PictureService.SetSeoFilename(newPicture.Id, PictureService.GetPictureSeName(product.Name));
             
             var productImagesRootObject = new ProductPicturesRootObjectDto();

@@ -208,7 +208,7 @@ namespace Nop.Plugin.Api.Controllers
         [ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorsRootObject), 422)]
-        public IActionResult UpdateSpecificationAttribute([ModelBinder(typeof(JsonModelBinder<SpecificationAttributeDto>))] Delta<SpecificationAttributeDto> specificationAttributeDelta)
+        public IActionResult UpdateSpecificationAttribute([ModelBinder(typeof(JsonModelBinder<SpecificationAttributeDto>))] Delta<SpecificationAttributeDto> specificaitonAttributeDelta)
         {
             // Here we display the errors if the validation has failed at some point.
             if (!ModelState.IsValid)
@@ -216,31 +216,93 @@ namespace Nop.Plugin.Api.Controllers
                 return Error();
             }
 
-            // We do not need to validate the product attribute id, because this will happen in the model binder using the dto validator.
-            int specificationAttributeId = specificationAttributeDelta.Dto.Id;
+            var specificationAttribute = new SpecificationAttribute();
+            specificaitonAttributeDelta.Merge(specificationAttribute);
 
-            var specificationAttribute = _specificationAttributeService.GetSpecificationAttributeById(specificationAttributeId);
-            if (specificationAttribute == null)
+            if (specificationAttribute.Id <= 0)
             {
-                return Error(HttpStatusCode.NotFound, "specification attribute", "not found");
+                _specificationAttributeService.InsertSpecificationAttribute(specificationAttribute);
             }
 
-            specificationAttributeDelta.Merge(specificationAttribute);
+            var options = new List<SpecificationAttributeOption>();
+            if (specificaitonAttributeDelta.Dto.SpecificationAttributeOptions?.Any() == true)
+            {
+                var ix = 0;
+                foreach (var option in specificaitonAttributeDelta.Dto.SpecificationAttributeOptions)
+                {
+                    if (option.Id <= 0)
+                    {
+                        var opt = new SpecificationAttributeOption
+                        {
+                            Name = option.Name,
+                            SpecificationAttributeId = specificationAttribute.Id,
+                            DisplayOrder = ix
+                        };
+                        ix++;
+                        _specificationAttributeService.InsertSpecificationAttributeOption(opt);
+                        options.Add(opt);
+                    }
+                }
+            }
 
-            _specificationAttributeService.UpdateSpecificationAttribute(specificationAttribute);
-          
-            CustomerActivityService.InsertActivity("EditSpecAttribute", LocalizationService.GetResource("ActivityLog.EditSpecAttribute"), specificationAttribute);
+            CustomerActivityService.InsertActivity("UpdateSpecAttribute", LocalizationService.GetResource("ActivityLog.AddNewSpecAttribute"), specificationAttribute);
 
-            // Preparing the result dto of the new product attribute
+            // Preparing the result dto of the new product
             var specificationAttributeDto = _dtoHelper.PrepareSpecificationAttributeDto(specificationAttribute);
+            specificationAttributeDto.SpecificationAttributeOptions = new List<SpecificationAttributeOptionDto>();
+            foreach (var option in options)
+            {
+                specificationAttributeDto.SpecificationAttributeOptions.Add(_dtoHelper.PrepareSpecificationAttributeOptionDto(option));
+            }
+            var specificationAttributesRootObjectDto = new SpecificationAttributesRootObjectDto();
+            specificationAttributesRootObjectDto.SpecificationAttributes.Add(specificationAttributeDto);
 
-            var specificatoinAttributesRootObjectDto = new SpecificationAttributesRootObjectDto();
-            specificatoinAttributesRootObjectDto.SpecificationAttributes.Add(specificationAttributeDto);
-
-            var json = JsonFieldsSerializer.Serialize(specificatoinAttributesRootObjectDto, string.Empty);
+            var json = JsonFieldsSerializer.Serialize(specificationAttributesRootObjectDto, string.Empty);
 
             return new RawJsonActionResult(json);
         }
+
+
+        //[HttpPut]
+        //[Route("/api/specificationattributes/{id}")]
+        //[ProducesResponseType(typeof(SpecificationAttributesRootObjectDto), (int)HttpStatusCode.OK)]
+        //[ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        //[ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
+        //[ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        //[ProducesResponseType(typeof(ErrorsRootObject), 422)]
+        //public IActionResult UpdateSpecificationAttribute([ModelBinder(typeof(JsonModelBinder<SpecificationAttributeDto>))] Delta<SpecificationAttributeDto> specificationAttributeDelta)
+        //{
+        //    // Here we display the errors if the validation has failed at some point.
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return Error();
+        //    }
+
+        //    // We do not need to validate the product attribute id, because this will happen in the model binder using the dto validator.
+        //    int specificationAttributeId = specificationAttributeDelta.Dto.Id;
+
+        //    var specificationAttribute = _specificationAttributeService.GetSpecificationAttributeById(specificationAttributeId);
+        //    if (specificationAttribute == null)
+        //    {
+        //        return Error(HttpStatusCode.NotFound, "specification attribute", "not found");
+        //    }
+
+        //    specificationAttributeDelta.Merge(specificationAttribute);
+
+        //    _specificationAttributeService.UpdateSpecificationAttribute(specificationAttribute);
+          
+        //    CustomerActivityService.InsertActivity("EditSpecAttribute", LocalizationService.GetResource("ActivityLog.EditSpecAttribute"), specificationAttribute);
+
+        //    // Preparing the result dto of the new product attribute
+        //    var specificationAttributeDto = _dtoHelper.PrepareSpecificationAttributeDto(specificationAttribute);
+
+        //    var specificatoinAttributesRootObjectDto = new SpecificationAttributesRootObjectDto();
+        //    specificatoinAttributesRootObjectDto.SpecificationAttributes.Add(specificationAttributeDto);
+
+        //    var json = JsonFieldsSerializer.Serialize(specificatoinAttributesRootObjectDto, string.Empty);
+
+        //    return new RawJsonActionResult(json);
+        //}
 
         [HttpDelete]
         [Route("/api/specificationattributes/{id}")]

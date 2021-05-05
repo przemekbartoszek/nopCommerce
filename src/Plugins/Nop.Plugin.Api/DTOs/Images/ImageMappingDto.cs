@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using Nop.Plugin.Api.Attributes;
 
 namespace Nop.Plugin.Api.DTO.Images
@@ -7,13 +8,15 @@ namespace Nop.Plugin.Api.DTO.Images
     [JsonObject(Title = "image")]
     public class ImageMappingDto : ImageDto
     {
-        [JsonProperty("product_id")]
-        public int ProductId { get; set; }
+        [JsonProperty("product_ids")]
+        public List<int> ProductIds { get; set; }
 
         [JsonProperty("picture_id")]
         public int PictureId { get; set; }
 
         [JsonProperty("position")]
         public int Position { get; set; }
+
+
     }
 }

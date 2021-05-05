@@ -1,0 +1,120 @@
+﻿
+.header-links ul li.cart-full-screen a, .header-links ul li.wishlist-desk a{
+    color: #ffffff;
+}
+.free-shipping .icon {
+    border-color:#1dc6a5;
+}
+.free-shipping i {
+    color: #1dc6a5;
+}
+.slick-prev:hover, .slick-prev:focus, .slick-next:hover, .slick-next:focus {
+    color:#1dc6a5;
+    border:1px solid #1dc6a5;
+}
+.slick-dots li.slick-active button:before {
+    background-color:#1dc6a5;
+}
+.side-nav h3::before {
+    background:#1dc6a5;
+}
+.side-nav-gbtbox > ul > li > a{border-left:3px solid #1dc6a5;}
+.onepageview h3::after, .home-tab-sec .nav-tabs .nav-link.active::after{background:#1dc6a5;}
+.product-viewmode a.viewmode-icon.selected {
+    color:#1dc6a5;
+}
+.product-review-links a {
+    color:#1dc6a5;
+}
+.product-head .nav-tabs li a.active, .product-details-page .nav-tabs li a.active, .product-details-page .nav-tabs li a.active.show{
+    border:none;
+    border-top:2px solid #1dc6a5;
+}
+.actual-price, .prices, #flyout-cart .price span{
+    color:#1dc6a5;
+}
+.btn.Addcart, .Addcart:hover, button.hover-btn:hover {
+    background: #1dc6a5;
+    color: #fff;
+}
+.overview .overview-buttons .btn-default:hover {
+    background:#1dc6a5;
+    color:#fff;
+}
+.overview .product-price, .variant-overview .product-price {
+    color:#1dc6a5;
+}
+.overview .overview-buttons .btn-default{color:#1dc6a5;}
+.common-buttons .btn-default{color:#1dc6a5;}
+.common-buttons .btn-default:hover{color:#666666;}
+.estimate-shipping-button{color:#1dc6a5;border:1px solid #1dc6a5;}
+.estimate-shipping-button:hover{color:#666666;border:1px solid #666666;}
+.edit-item a {
+    color: #1dc6a5;
+}
+.product-subtotal, .value-summary strong{
+    color:#1dc6a5;
+}
+.order-progress ul li.active_position a {
+    background:#1dc6a5;
+    color:#fff;
+}
+.manufacturers span.value a {
+    color: #1dc6a5;
+}
+.news-items .read-more {
+    color:#1dc6a5;
+}
+.forgot-password a {
+    color:#1dc6a5;
+}
+.btn-default {
+    background:#1dc6a5;
+    color:#fff;
+}
+.deals .btn-secondary, .shipping .btn-secondary {
+    background:#9a9a9a;
+    border:none;
+    border-left:1px solid #9a9a9a;
+}
+.checkout-page .number {
+    background:#1dc6a5;
+}
+.sitemap a:hover{
+    color:#19d7b1;
+}
+.tags ul li a:hover{
+    background:#1dc6a5;
+    color:#fff;
+    text-decoration:none;
+}
+.view-all a {
+    color:#1dc6a5;
+}
+.foot-newsletter{    
+    background:#1dc6a5;
+}
+.newsletter-email .btn-default.newsletter-subscribe-button{
+    background-color:#333333;
+}
+.newsletter-email .btn-default.newsletter-subscribe-button:hover{
+    background-color:#000000;
+}
+footer a:hover {
+    color: #1dc6a5;
+}
+.contactInfo i.fa, .contactInfo i.fas, .contactInfo i.far {
+    color: #1dc6a5;
+}
+.copyrights a {
+    color:#1dc6a5;
+}
+.copyrights a:hover{
+    color:#666;
+}
+.scrollup {
+    background:#1dc6a5;
+}
+.scrollup:hover{
+    background:#333333;
+}

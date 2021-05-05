@@ -217,7 +217,7 @@ namespace Nop.Plugin.Api.Helpers
                 {
                     //Attachment = Convert.ToBase64String(picture.PictureBinary),
                     Id = productPicture.Id,
-                    ProductId = productPicture.ProductId,
+                    ProductIds = new List<int>(){productPicture.ProductId},
                     PictureId = productPicture.PictureId,
                     Position = productPicture.DisplayOrder,
                     MimeType = picture.MimeType,

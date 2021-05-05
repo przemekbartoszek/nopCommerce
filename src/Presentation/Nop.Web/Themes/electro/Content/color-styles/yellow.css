@@ -1,0 +1,111 @@
+﻿.zmb-heading:before {
+    background:#f3cc2e;
+}
+.header-links ul li.cart-full-screen{
+    background:#f3cc2e;
+}
+.header-links ul li.cart-full-screen a{
+    color: #fff;
+}
+.free-shipping .icon {
+    border-color: #f3cc2e;
+}
+.free-shipping i {
+    color: #f3cc2e;
+}
+.slick-prev:hover, .slick-prev:focus, .slick-next:hover, .slick-next:focus {
+    color:#f3cc2e;
+    border:1px solid #f3cc2e;
+}
+.slick-dots li.slick-active button:before {
+    background-color:#f3cc2e;
+}
+.side-nav h3::before {
+    background:#f3cc2e;
+}
+.onepageview h3::after{
+    background:#f3cc2e;
+}
+.product-viewmode a.viewmode-icon.selected {
+    color:#f3cc2e;
+}
+.product-review-links a {
+    color:#f3cc2e;
+}
+.product-head .nav-tabs li a.active, .product-details-page .nav-tabs li a.active {
+    background: none;
+    border: none;
+    border-bottom: 3px solid #f3cc2e;
+}
+.actual-price, .prices, #flyout-cart .price span{
+    color:#f3cc2e;
+}
+.Addcart:hover, button.hover-btn:hover {
+    background:#f3cc2e;
+    color:#fff;
+}
+.overview .overview-buttons .btn-default:hover {
+    background:#f3cc2e;
+    color:#fff;
+}
+.overview .product-price, .variant-overview .product-price {
+    color:#f3cc2e;
+}
+.edit-item a {
+    color:#f3cc2e;
+}
+.product-subtotal, .value-summary strong{
+    color:#f3cc2e;
+}
+.order-progress ul li.active_position a {
+    background:#f3cc2e;
+    color:#fff;
+}
+.manufacturers span.value a {
+    color: #f3cc2e;
+}
+.news-items .read-more {
+    color:#f3cc2e;
+}
+.forgot-password a {
+    color:#f3cc2e;
+}
+.btn-default {
+    background:#f3cc2e;
+    color:#fff;
+}
+.deals .btn-secondary, .shipping .btn-secondary {
+    background: #f0f0f0;
+    border: none;
+    border-left: 1px solid #ddd;
+    color: #666;
+}
+.checkout-page .number {
+    background:#f3cc2e;
+}
+.sitemap a:hover{
+    color:#19d7b1;
+}
+.tags ul li a:hover{
+    background:#f3cc2e;
+    color:#fff;
+    text-decoration:none;
+}
+.view-all a {
+    color:#f3cc2e;
+}
+footer a:hover{
+    color:#f3cc2e;
+}
+.contactInfo i.fa, .contactInfo i.fas, .contactInfo i.far {
+    color:#f3cc2e;
+}
+.copyrights a {
+    color:#f3cc2e;
+}
+.copyrights a:hover{
+    color:#666;
+}
+.scrollup {
+    background:#f3cc2e;
+}
