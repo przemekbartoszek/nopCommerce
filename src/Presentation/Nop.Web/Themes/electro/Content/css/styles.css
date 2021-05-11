@@ -674,9 +674,9 @@ header{
        homepage news css start
 *********************************************/
 .news-list-homepage {
-    position: relative;
-    padding:30px 0px 20px;
-    background: #f0f0f0;
+  position: relative;
+  padding: 30px 0px 20px;
+  background: #f0f0f0;
 }
 .news-list-homepage .news-item {
     padding-top: 25px;
@@ -767,8 +767,9 @@ header{
     background:#f5f5f5;
     box-shadow:0 0 14px rgba(0,0,0,.06);*/
     text-transform:none;
-    position:relative;
-    z-index:-1;
+  margin-top: 6px;
+    /*position:relative;
+    z-index: 1;*/
 }
 .breadcrumb a{color:#666666;}
 .breadcrumb-item.active{color:#9da1a5;}
@@ -2007,3 +2008,13 @@ footer h3 span.fa-angle-down{
 }
 }
 
+/*******************
+    idmag custom
+    ****/
+.spec-name {
+  padding: 0.15rem 0.3rem 0.15rem 0.3rem !important;
+}
+
+.spec-value {
+  padding: 0.15rem 0.3rem 0.15rem 0.3rem!important;
+}

@@ -98,16 +98,10 @@
                     <div class="product-tabs">
                         <!-- Nav tabs -->
                         <ul class="nav nav-tabs" role="tablist">
-                            @if (Model.ProductSpecifications.Any())
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link active" data-toggle="tab" href="#productspecification" role="tab">@T("Products.Specs")</a>
-                                </li>
-                            }
                             @if (!string.IsNullOrEmpty(Model.FullDescription))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" data-toggle="tab" href="#productdetails" role="tab">@T("admin.catalog.attributes.productattributes.fields.description")</a>
+                                    <a class="nav-link active" data-toggle="tab" href="#productdetails" role="tab">@T("admin.catalog.attributes.productattributes.fields.description")</a>
                                 </li>
                             }
                             @if (Model.ProductTags.Any())
@@ -116,14 +110,17 @@
                                     <a class="nav-link" data-toggle="tab" href="#producttags" role="tab">@T("Products.Tags")</a>
                                 </li>
                             }
+                            @if (Model.ProductSpecifications.Any())
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" data-toggle="tab" href="#productspecification" role="tab">@T("Products.Specs")</a>
+                                </li>
+                            }
                         </ul>
 
                         <!-- Tab panes -->
                         <div class="tab-content">
-                            <div class="tab-pane active" id="productspecification" role="tabpanel">
-                                @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecifications)
-                            </div>
-                            <div class="fade tab-pane" id="productdetails" role="tabpanel">
+                            <div class="tab-pane active" id="productdetails" role="tabpanel">
                                 @if (!String.IsNullOrEmpty(Model.FullDescription))
                                 {
                                     <div class="full-description fade show tab-pane" id="productdetails" itemprop="description">
@@ -133,6 +130,9 @@
                             </div>
                             <div class="fade tab-pane" id="producttags" role="tabpanel">
                                 @await Html.PartialAsync("_ProductTags", Model.ProductTags)
+                            </div>
+                            <div class="fade tab-pane" id="productspecification" role="tabpanel">
+                                @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecifications)
                             </div>
                         </div>
                     </div>
@@ -146,26 +146,39 @@
                             {
                                 <div class="col-md-6">
                                     <div class="product-variant-line row" data-productid="@variant.Id">
-
+                                        @if (!string.IsNullOrWhiteSpace(variant.DefaultPictureModel.ImageUrl))
+                                        {
+                                            <div class="variant-picture col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-4">
+                                                <img alt="@variant.DefaultPictureModel.AlternateText" src="@variant.DefaultPictureModel.ImageUrl"
+                                                     title="@variant.DefaultPictureModel.Title" id="main-product-img-@variant.Id" />
+                                            </div>
+                                        }
                                         <div class="variant-overview col-xs-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+                                            @if (!string.IsNullOrWhiteSpace(variant.Name))
+                                            {
+                                                <div class="variant-name">
+                                                    @variant.Name
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(variant.ShortDescription))
+                                            {
+                                                <div class="variant-description">
+                                                    @Html.Raw(variant.ShortDescription)
+                                                </div>
+                                            }
                                             <!--availability-->
                                             @await Html.PartialAsync("_Availability", variant)
                                             <!--SKU, MAN, GTIN, vendor-->
                                             @await Html.PartialAsync("_SKU_Man_GTIN_Ven", variant)
                                             <!--delivery-->
                                             @await Html.PartialAsync("_DeliveryInfo", variant)
-
+                                            <!--sample download-->
+                                            @await Html.PartialAsync("_DownloadSample", variant)
                                             <!--attributes-->
                                             @{
                                                 var dataDictAttributes = new ViewDataDictionary(ViewData);
                                                 dataDictAttributes.TemplateInfo.HtmlFieldPrefix = $"attributes_{variant.Id}";
                                                 @await Html.PartialAsync("_ProductAttributes", variant.ProductAttributes, dataDictAttributes)
-                                            }
-                                            <!--specifications-->
-                                            @{
-                                                var dataDictSpecifications = new ViewDataDictionary(ViewData);
-                                                dataDictSpecifications.TemplateInfo.HtmlFieldPrefix = $"specifications_{variant.Id}";
-                                                @await Html.PartialAsync("_ProductSpecifications", variant.ProductSpecifications, dataDictSpecifications)
                                             }
                                             <!--gift card-->
                                             @{

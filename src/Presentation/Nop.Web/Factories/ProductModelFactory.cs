@@ -1297,10 +1297,10 @@ namespace Nop.Web.Factories
 
             //product specifications
             //do not prepare this model for the associated products. anyway it's not used
-            if (!isAssociatedProduct)
-            {
-                model.ProductSpecifications = PrepareProductSpecificationModel(product);
-            }
+            //if (!isAssociatedProduct)
+            //{
+            model.ProductSpecifications = PrepareProductSpecificationModel(product);
+            //}
 
             //product review overview
             model.ProductReviewOverview = PrepareProductReviewOverviewModel(product);
