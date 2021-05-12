@@ -35,6 +35,7 @@ namespace Nop.Web.Models.Catalog
         public IList<ProductSpecificationModel> SpecificationAttributeModels { get; set; }
         //price
         public ProductReviewOverviewModel ReviewOverviewModel { get; set; }
+        public bool IgnorePicture { get; set; }
 
 		#region Nested Classes
 

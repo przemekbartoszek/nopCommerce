@@ -1244,9 +1244,21 @@ namespace Nop.Services.Catalog
                 case ManageInventoryMethod.ManageStockByAttributes:
                     stockMessage = GeStockMessage(product, attributesXml);
                     break;
+                case ManageInventoryMethod.ManageStockByProps:
+                    stockMessage = GetStockMessageByProductProps(product);
+                    break;
             }
 
             return stockMessage;
+        }
+
+        private string GetStockMessageByProductProps(Product product)
+        {
+            if (product.WaitingForDelivery)
+            {
+                return _localizationService.GetResource("Products.Availability.CallForAvailability");
+            }
+            return _localizationService.GetResource("Products.Availability.AvailableInNDays");
         }
 
         /// <summary>

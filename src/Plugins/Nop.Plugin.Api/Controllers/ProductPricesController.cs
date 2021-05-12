@@ -83,8 +83,9 @@ namespace Nop.Plugin.Api.Controllers
             product.MaxPrice = productDelta.Dto.MaxPrice;
             product.AutoCalculatePrice = productDelta.Dto.AutoCalculatePrice;
             product.WaitingForDelivery = productDelta.Dto.WaitingForDelivery;
-
+            product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
             product.UpdatedOnUtc = DateTime.UtcNow;
+            //product.Pric
             _productService.UpdateProduct(product);
 
             CustomerActivityService.InsertActivity("APIService", $"Update product: '{product.Sku}' price: {productDelta.Dto.Price} ", product);

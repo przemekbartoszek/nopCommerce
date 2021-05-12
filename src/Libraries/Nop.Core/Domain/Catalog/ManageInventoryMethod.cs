@@ -1,4 +1,4 @@
-namespace Nop.Core.Domain.Catalog
+﻿namespace Nop.Core.Domain.Catalog
 {
     /// <summary>
     /// Represents a method of inventory management
@@ -19,5 +19,10 @@ namespace Nop.Core.Domain.Catalog
         /// Track inventory for product by product attributes
         /// </summary>
         ManageStockByAttributes = 2,
+
+        /// <summary>
+        /// 
+        /// </summary>
+        ManageStockByProps = 3
     }
 }

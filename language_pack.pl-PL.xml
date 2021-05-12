@@ -6,4 +6,7 @@
 <LocaleResource Name="Admin.Catalog.Products.Fields.MaxPrice"><Value>Maksymalna dopuszczalna cena</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.NetPrice"><Value>Cena netto</Value></LocaleResource>
 <LocaleResource Name="Admin.Catalog.Products.Fields.AutoCalculatePrice"><Value>Automatyczne przeliczanie ceny</Value></LocaleResource>
-<LocaleResource Name="Admin.Catalog.Products.Fields.WaitingForDelivery"><Value>Czeka na dostawę</Value></LocaleResource></Language>
+<LocaleResource Name="Admin.Catalog.Products.Fields.WaitingForDelivery"><Value>Czeka na dostawę</Value></LocaleResource>
+<LocaleResource Name="Products.Availability.CallForAvailability"><Value>Zapytaj o dostępność</Value></LocaleResource>
+<LocaleResource Name="Products.Availability.AvailableInNDays"><Value>1-6 dni</Value></LocaleResource>
+<LocaleResource Name="Enums.Nop.Core.Domain.Catalog.ManageInventoryMethod.ManageStockByProps"><Value>Zarządzaj zapasami magazynu według ustawień WaitingForDelivery</Value></LocaleResource></Language>
