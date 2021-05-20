@@ -112,6 +112,9 @@ namespace Nop.Web.Models.Catalog
 
         public string CurrentStoreName { get; set; }
 
+        public int? ParentGroupedProductId { get; set; }
+        public string ParentGroupedProductSeoName { get; set; }
+
         #region Nested Classes
 
         public partial class ProductBreadcrumbModel : BaseNopModel

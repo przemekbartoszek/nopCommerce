@@ -23,7 +23,7 @@
     var addtocomparelink = Url.RouteUrl("AddProductToCompare", new { productId = Model.Id });
 }
 <div class="product-item clearfix" data-productid="@Model.Id">
-
+        @if (!Model.IgnorePicture) { 
         <div class="picture thumbnail productview">
             <a href="@Url.RouteUrl("Product", new {SeName = Model.SeName})" title="@Model.DefaultPictureModel.Title">
                 <img alt="@Model.DefaultPictureModel.AlternateText" src="@Model.DefaultPictureModel.ImageUrl" title="@Model.DefaultPictureModel.Title"/>
@@ -34,7 +34,7 @@
                 </button>
             </div>
         </div>
-
+        }
         <div class="caption middle-content transition">
             <div class="details">
                 @if (Model.ReviewOverviewModel.AllowCustomerReviews)
@@ -51,15 +51,17 @@
                         </div>
                     </div>
                 }
-                <h2 class="product-title">
+                <h2 style="font-size: 15px"> 
                     <a href="@Url.RouteUrl("Product", new {SeName = Model.SeName})">@Model.Name</a>
+                    @if (catalogSettings.ShowSkuOnCatalogPages && !string.IsNullOrEmpty(Model.Sku))
+                    {
+                        <br/>
+                        <span style="font-size: 12px">
+                            @Model.Sku
+                        </span>
+                    }
                 </h2>
-                @if (catalogSettings.ShowSkuOnCatalogPages && !string.IsNullOrEmpty(Model.Sku))
-                {
-                    <div class="sku">
-                        @Model.Sku
-                    </div>
-                }
+
                 <div class="description">
                     @Html.Raw(Model.ShortDescription)
                 </div>
@@ -101,9 +103,18 @@
                         {
                             addToCartText = T("ShoppingCart.PreOrder").Text;
                         }
-                        <button type="button" value="" class="btn Addcart product-box-add-to-cart-button" onclick="AjaxCart.addproducttocart_catalog('@addtocartlink');return false;">
-                            <i class="fas fa-shopping-basket"></i> @(addToCartText)
-                        </button>
+                    <button type="button" value="" class="btn Addcart product-box-add-to-cart-button" onclick="AjaxCart.addproducttocart_catalog('@addtocartlink');return false;">
+                        <i class="fa fa-shopping-basket"></i> @if (!Model.IgnorePicture)
+                                                              {
+                                                                  @addToCartText
+                                                              }
+                    </button>
+                        @if (Model.IgnorePicture)
+                        {
+                            <button type="button" value="" class="btn Addcart product-box-add-to-cart-button" onclick="setLocation('@Url.RouteUrl("Product", new {SeName = Model.SeName})')">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        }
                     }
 
                     @if (!Model.ProductPrice.DisableWishlistButton)

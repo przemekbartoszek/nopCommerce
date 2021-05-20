@@ -2099,7 +2099,7 @@ label, label + * {
 	overflow: hidden;
 }
 .variant-overview {
-	width: 100%;
+  width: 100%;
 }
 .variant-overview .variant-name {
 	margin: 0 0 10px;

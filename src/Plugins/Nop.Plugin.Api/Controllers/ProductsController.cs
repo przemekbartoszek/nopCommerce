@@ -325,6 +325,8 @@ namespace Nop.Plugin.Api.Controllers
             var product = _factory.Initialize();
             productDelta.Merge(product);
             product.ProductTemplateId = product.ProductType == ProductType.SimpleProduct ? 1 : 2;
+            product.OrderMaximumQuantity = 10000;
+            product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
             _productService.InsertProduct(product);
 
             UpdateProductPictures(product, productDelta.Dto.Images);

@@ -9,4 +9,10 @@
 <LocaleResource Name="Admin.Catalog.Products.Fields.WaitingForDelivery"><Value>Czeka na dostawę</Value></LocaleResource>
 <LocaleResource Name="Products.Availability.CallForAvailability"><Value>Zapytaj o dostępność</Value></LocaleResource>
 <LocaleResource Name="Products.Availability.AvailableInNDays"><Value>1-6 dni</Value></LocaleResource>
-<LocaleResource Name="Enums.Nop.Core.Domain.Catalog.ManageInventoryMethod.ManageStockByProps"><Value>Zarządzaj zapasami magazynu według ustawień WaitingForDelivery</Value></LocaleResource></Language>
+<LocaleResource Name="Enums.Nop.Core.Domain.Catalog.ManageInventoryMethod.ManageStockByProps"><Value>Zarządzaj zapasami magazynu według ustawień WaitingForDelivery</Value></LocaleResource>
+<LocaleResource Name="Products.ShowFamilyOfProducts"><Value>Pokaż rodzinę produktów</Value></LocaleResource>
+<LocaleResource Name="Homepage.FreeShipping"><Value>Darmowa dostawa</Value></LocaleResource>
+<LocaleResource Name="Homepage.FreeShipping.OrdersOver"><Value>Zamówienia powyżej 500 PLN</Value></LocaleResource>
+<LocaleResource Name="Homepage.OnlineSupport"><Value>Obsługa online</Value></LocaleResource>
+<LocaleResource Name="Homepage.Products"><Value>10.000+ produktów</Value></LocaleResource>
+<LocaleResource Name="Homepage.Shippment24h"><Value>Wysyłka 24h</Value></LocaleResource></Language>

@@ -145,9 +145,9 @@
                             @foreach (var variant in Model.AssociatedProducts)
                             {
                                 <div class="col-md-6">
-                                    <div class="product-variant-line row" data-productid="@variant.Id">
+                                    <div class="product-variant-line row" data-productid="@variant.Id" style="height: 100%">
 
-                                        <div class="variant-overview col-xs-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
+                                        <div class="variant-overview compact-product-overview col-xs-12 col-sm-12 col-md-8 col-lg-8 col-xl-8">
                                             <!--availability-->
                                             @await Html.PartialAsync("_Availability", variant)
                                             <!--SKU, MAN, GTIN, vendor-->
