@@ -85,7 +85,7 @@ namespace Nop.Plugin.Api.Controllers
             product.WaitingForDelivery = productDelta.Dto.WaitingForDelivery;
             product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
             product.UpdatedOnUtc = DateTime.UtcNow;
-            //product.Pric
+            product.CallForPrice = productDelta.Dto.NetPrice <= 0;
             _productService.UpdateProduct(product);
 
             CustomerActivityService.InsertActivity("APIService", $"Update product: '{product.Sku}' price: {productDelta.Dto.Price} ", product);

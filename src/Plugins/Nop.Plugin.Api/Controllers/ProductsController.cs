@@ -327,6 +327,8 @@ namespace Nop.Plugin.Api.Controllers
             product.ProductTemplateId = product.ProductType == ProductType.SimpleProduct ? 1 : 2;
             product.OrderMaximumQuantity = 10000;
             product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
+            product.CallForPrice = product.NetPrice <= 0;
+
             _productService.InsertProduct(product);
 
             UpdateProductPictures(product, productDelta.Dto.Images);
