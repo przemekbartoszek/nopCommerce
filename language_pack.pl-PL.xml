@@ -16,4 +16,11 @@
 <LocaleResource Name="Homepage.OnlineSupport"><Value>Obsługa online</Value></LocaleResource>
 <LocaleResource Name="Homepage.Products"><Value>10.000+ produktów</Value></LocaleResource>
 <LocaleResource Name="Homepage.Shippment24h"><Value>Wysyłka 24h</Value></LocaleResource>
-<LocaleResource Name="Product.Accessories"><Value>Akcesoria</Value></LocaleResource></Language>
+<LocaleResource Name="Product.Accessories"><Value>Akcesoria</Value></LocaleResource>
+<LocaleResource Name="Header.AboutUs"><Value>O nas</Value></LocaleResource>
+<LocaleResource Name="Header.ShippingReturns"><Value>Wysyłki i zwroty</Value></LocaleResource>
+<LocaleResource Name="Header.PrivacyNotice"><Value>Polityka prywatności</Value></LocaleResource>
+<LocaleResource Name="Header.ConditionsOfUse"><Value>Regulamin sklepu</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.SpecificationFileName"><Value>Plik specyfikacji</Value></LocaleResource>
+<LocaleResource Name="Admin.Catalog.Products.Fields.AccessoriesFileName"><Value>Przewodnik po akcesoriach</Value></LocaleResource>
+</Language>

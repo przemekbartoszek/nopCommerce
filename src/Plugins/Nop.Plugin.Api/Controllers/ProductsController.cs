@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Hosting;
 using static Nop.Plugin.Api.Infrastructure.Constants;
 
 namespace Nop.Plugin.Api.Controllers
@@ -43,6 +44,7 @@ namespace Nop.Plugin.Api.Controllers
         private readonly IProductTagService _productTagService;
         private readonly IProductAttributeService _productAttributeService;
         private readonly IDTOHelper _dtoHelper;
+        private readonly IHostEnvironment _hostEnvironment;
         private readonly ILogger _logger;
         private readonly CatalogSettings _catalogSettings;
         private readonly IStoreContext _storeContext;
@@ -68,7 +70,8 @@ namespace Nop.Plugin.Api.Controllers
                                   IProductTagService productTagService,
                                   IProductAttributeService productAttributeService,
                                   ILogger logger,
-                                  IDTOHelper dtoHelper) : base(jsonFieldsSerializer, aclService, customerService, storeMappingService, storeService, discountService, customerActivityService, localizationService, pictureService)
+                                  IDTOHelper dtoHelper,
+                                  IHostEnvironment hostEnvironment) : base(jsonFieldsSerializer, aclService, customerService, storeMappingService, storeService, discountService, customerActivityService, localizationService, pictureService)
         {
             _productApiService = productApiService;
             _factory = factory;
@@ -82,6 +85,7 @@ namespace Nop.Plugin.Api.Controllers
             _productAttributeService = productAttributeService;
             _logger = logger;
             _dtoHelper = dtoHelper;
+            _hostEnvironment = hostEnvironment;
         }
 
         /// <summary>
@@ -328,9 +332,9 @@ namespace Nop.Plugin.Api.Controllers
             product.OrderMaximumQuantity = 10000;
             product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
             product.CallForPrice = product.NetPrice <= 0;
-
+            //_hostEnvironment.ContentRootPath
             _productService.InsertProduct(product);
-
+            
             UpdateProductPictures(product, productDelta.Dto.Images);
 
             UpdateProductTags(product, productDelta.Dto.Tags);

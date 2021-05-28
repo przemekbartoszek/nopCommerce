@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Nop.Core.Domain.Catalog;
 using Nop.Plugin.Api.Delta;
 using Nop.Plugin.Api.DTO.Errors;
@@ -30,6 +32,7 @@ namespace Nop.Plugin.Api.Controllers
         private readonly IProductApiService _productApiService;
         private readonly IProductService _productService;
         private readonly IDTOHelper _dtoHelper;
+        private readonly IHostEnvironment _hostEnvironment;
 
         public ProductPricesController(
             IJsonFieldsSerializer jsonFieldsSerializer, 
@@ -42,12 +45,15 @@ namespace Nop.Plugin.Api.Controllers
             ILocalizationService localizationService, 
             IPictureService pictureService,
             IProductApiService productApiService,
-            IProductService productService, IDTOHelper dtoHelper) 
+            IProductService productService, 
+            IDTOHelper dtoHelper,
+            IHostEnvironment hostEnvironment) 
             : base(jsonFieldsSerializer, aclService, customerService, storeMappingService, storeService, discountService, customerActivityService, localizationService, pictureService)
         {
             this._productApiService = productApiService;
             _productService = productService;
             _dtoHelper = dtoHelper;
+            _hostEnvironment = hostEnvironment;
         }
 
         [HttpPut]
@@ -95,6 +101,58 @@ namespace Nop.Plugin.Api.Controllers
 
 
         }
+
+        private void SaveFile(string fileName, string fileData)
+        {
+            if (!string.IsNullOrEmpty(fileData) && !string.IsNullOrEmpty(fileName))
+            {
+                var buffer = Convert.FromBase64String(fileData);
+                var dir = $"{_hostEnvironment.ContentRootPath}{Path.DirectorySeparatorChar}wwwroot{Path.DirectorySeparatorChar}pdf{Path.DirectorySeparatorChar}specs";
+                Directory.CreateDirectory(dir);
+                using var s = System.IO.File.Create(dir + Path.DirectorySeparatorChar + fileName);
+                s.Write(buffer);
+                s.Close();
+            }
+        }
+
+        [HttpPut]
+        [Route("/api/product_files/{id}")]
+        [ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(ErrorsRootObject), 422)]
+        [ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
+        public IActionResult UpdateProductFiles([ModelBinder(typeof(JsonModelBinder<ProductFilesDto>))] Delta<ProductFilesDto> productDelta)
+        {
+            // Here we display the errors if the validation has failed at some point.
+            if (!ModelState.IsValid)
+            {
+                return Error();
+            }
+            CustomerActivityService.InsertActivity("APIService", "Starting Product Files Update", null);
+
+            var product = _productApiService.GetProductById(productDelta.Dto.Id);
+
+            if (product == null)
+            {
+                return Error(HttpStatusCode.NotFound, "product", "not found");
+            }
+
+            SaveFile(productDelta.Dto.SpecificationFileName, productDelta.Dto.Specification);
+            SaveFile(productDelta.Dto.AccessoriesFileName, productDelta.Dto.Accessories);
+            product.SpecificationFileName = productDelta.Dto.SpecificationFileName;
+            product.AccessoriesFileName = productDelta.Dto.AccessoriesFileName;
+
+
+            _productService.UpdateProduct(product);
+
+            CustomerActivityService.InsertActivity("APIService", $"Update product: '{product.Sku}'", product);
+            var result = new ProductFilesRootObjectDto();
+            return new RawJsonActionResult(JsonFieldsSerializer.Serialize(result, string.Empty));
+
+
+        }
+
 
         [HttpPost]
         [Route("/api/product_relations/{id}")]

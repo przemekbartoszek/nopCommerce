@@ -15,5 +15,7 @@ namespace Nop.Core.Domain.Catalog
         public decimal? MaxPrice { get; set; }
         public bool AutoCalculatePrice { get; set; }
         public bool WaitingForDelivery { get; set; }
+        public string SpecificationFileName { get; set; }
+        public string AccessoriesFileName { get; set; }
     }
 }

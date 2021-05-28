@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Nop.Web.Framework.Mvc.ModelBinding;
 
 namespace Nop.Web.Areas.Admin.Models.Catalog
@@ -34,5 +31,11 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.WaitingForDelivery")]
         public bool WaitingForDelivery { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.SpecificationFileName")]
+        public string SpecificationFileName { get; set; }
+
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.AccessoriesFileName")]
+        public string AccessoriesFileName { get; set; }
     }
 }

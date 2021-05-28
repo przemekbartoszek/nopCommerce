@@ -92,8 +92,22 @@
                                 </div>
                                 @await Html.PartialAsync("_ShareButton", Model)
                                 @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsOverviewBottom, additionalData = Model })
+                            <div class="overview-buttons">
+                                @if (!string.IsNullOrEmpty(Model.SpecificationPdfUrl))
+                                {
+                                    <a href="/pdf/specs/@Model.SpecificationPdfUrl" class="btn btn-default" target="_blank">
+                                        <i class="fas fa-book"></i> Specyfikacja
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.AccessoriesPdfUrl))
+                                {
+                                    <a href="/pdf/specs/@Model.AccessoriesPdfUrl" class="btn btn-default" target="_blank">
+                                        <i class="fas fa-columns"></i> Przewodnik po akcesoriach
+                                    </a>
+                                }
                             </div>
-                        </div>
+                                </div>
+                            </div>
                     </div>
                     <div class="product-tabs">
                         <!-- Nav tabs -->

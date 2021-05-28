@@ -332,6 +332,7 @@ namespace Nop.Web.Factories
                             priceModel.OldPrice = _priceFormatter.FormatPrice(strikeThroughPrice);
 
                         priceModel.Price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
+                        priceModel.PriceNetto = _priceFormatter.FormatPrice(product.NetPrice);
                         priceModel.PriceValue = finalPriceWithDiscount;
                     }
 
@@ -588,6 +589,7 @@ namespace Nop.Web.Factories
                             model.OldPrice = _priceFormatter.FormatPrice(oldPrice);
 
                         model.Price = _priceFormatter.FormatPrice(finalPriceWithoutDiscount);
+                        model.PriceNetto = _priceFormatter.FormatPrice(product.NetPrice);
 
                         if (finalPriceWithoutDiscountBase != finalPriceWithDiscountBase)
                             model.PriceWithDiscount = _priceFormatter.FormatPrice(finalPriceWithDiscount);
@@ -1173,7 +1175,9 @@ namespace Nop.Web.Factories
                 HasSampleDownload = product.IsDownload && product.HasSampleDownload,
                 DisplayDiscontinuedMessage = !product.Published && _catalogSettings.DisplayDiscontinuedMessageForUnpublishedProducts,
                 AvailableEndDate = product.AvailableEndDateTimeUtc,
-                ParentGroupedProductId = product.ParentGroupedProductId
+                ParentGroupedProductId = product.ParentGroupedProductId,
+                SpecificationPdfUrl = product.SpecificationFileName,
+                AccessoriesPdfUrl = product.AccessoriesFileName
             };
 
             if(product.ParentGroupedProductId > 0)
