@@ -67,7 +67,7 @@
                                     @T("ShoppingCart.Image")
                                 </th>
                             }
-                            <th width="40%" class="product">
+                            <th width="37%" class="product">
                                 @T("ShoppingCart.Product(s)")
                             </th>
                             @if (Model.ShowVendorName)
@@ -76,13 +76,13 @@
                                     @T("ShoppingCart.VendorName")
                                 </th>
                             }
-                            <th width="10%" class="unit-price">
+                            <th width="13%" class="unit-price">
                                 @T("ShoppingCart.UnitPrice")
                             </th>
-                            <th width="10%" class="quantity">
+                            <th width="7%" class="quantity">
                                 @T("ShoppingCart.Quantity")
                             </th>
-                            <th width="10%" class="subtotal">
+                            <th width="13%" class="subtotal">
                                 @T("ShoppingCart.ItemTotal")
                             </th>
                         </tr>
@@ -165,9 +165,10 @@
                                         <span class="vendor-name">@item.VendorName</span>
                                     </td>
                                 }
-                                <td class="unit-price">
-                                    <span class="product-unit-price">@item.UnitPrice</span>
-                                </td>
+                            <td class="unit-price">
+                                <span class="product-unit-price">@item.UnitNetPrice</span><span style="font-size: xx-small">&nbsp;&nbsp;netto</span><br />
+                                <span class="product-unit-price" style="font-size: smaller">@item.UnitPrice</span><span style="font-size: xx-small">&nbsp;&nbsp;brutto</span>
+                            </td>
                                 <td class="quantity">
                                     @if (Model.IsEditable)
                                     {
@@ -191,7 +192,8 @@
                                     }
                                 </td>
                                 <td class="subtotal">
-                                    <span class="product-subtotal">@item.SubTotal</span>
+                                    <span class="product-subtotal">@item.SubNetTotal</span><span style="font-size: xx-small">&nbsp;&nbsp;netto</span><br/>
+                                    <span class="product-subtotal" style="font-size: smaller">@item.SubTotal</span><span style="font-size: xx-small">&nbsp;&nbsp;brutto</span>
                                     @if (!string.IsNullOrEmpty(item.Discount))
                                     {
                                         <div class="discount">
@@ -254,11 +256,13 @@
                     {
                         <div class="col-lg-6 col-md-6">
                             <div class="cart-collaterals">
+                                @if((Model.DiscountBox.Display || Model.GiftCardBox.Display)){
                                 <div class="deals">
                                     @await Html.PartialAsync("_DiscountBox", Model.DiscountBox)
                                     @await Html.PartialAsync("_GiftCardBox", Model.GiftCardBox)
                                     @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderSummaryContentDeals })
                                 </div>
+                                }
                             </div>
                         </div>
                     }

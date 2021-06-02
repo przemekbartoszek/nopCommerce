@@ -315,7 +315,8 @@ namespace Nop.Web.Factories
                     if (displayFromMessage)
                     {
                         priceModel.OldPrice = null;
-                        priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPriceWithDiscount));
+                        //priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPriceWithDiscount));
+                        priceModel.PriceNetto = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(product.NetPrice));
                         priceModel.PriceValue = finalPriceWithDiscount;
                     }
                     else
@@ -386,6 +387,9 @@ namespace Nop.Web.Factories
                 //find a minimum possible price
                 decimal? minPossiblePrice = null;
                 Product minPriceProduct = null;
+
+                decimal? minPossibleNetPrice = null;
+
                 foreach (var associatedProduct in associatedProducts)
                 {
                     var tmpMinPossiblePrice = _priceCalculationService.GetFinalPrice(associatedProduct, _workContext.CurrentCustomer);
@@ -397,10 +401,14 @@ namespace Nop.Web.Factories
                             _priceCalculationService.GetFinalPrice(associatedProduct, _workContext.CurrentCustomer, quantity: int.MaxValue));
                     }
 
-                    if (minPossiblePrice.HasValue && tmpMinPossiblePrice >= minPossiblePrice.Value)
+                    //if (minPossiblePrice.HasValue && tmpMinPossiblePrice >= minPossiblePrice.Value)
+                    //    continue;
+                    if(associatedProduct.NetPrice > minPossibleNetPrice)
                         continue;
+
                     minPriceProduct = associatedProduct;
                     minPossiblePrice = tmpMinPossiblePrice;
+                    minPossibleNetPrice = associatedProduct.NetPrice;
                 }
 
                 if (minPriceProduct == null || minPriceProduct.CustomerEntersPrice)
@@ -421,7 +429,14 @@ namespace Nop.Web.Factories
                     var finalPrice = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceBase, _workContext.WorkingCurrency);
 
                     priceModel.OldPrice = null;
-                    priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPrice));
+                    //priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPrice));
+                    if (minPossibleNetPrice.HasValue)
+                    {
+                        priceModel.PriceNetto =
+                            string.Format(_localizationService.GetResource("Products.PriceRangeFrom"),
+                                _priceFormatter.FormatPrice(minPossibleNetPrice.Value));
+                    }
+
                     priceModel.PriceValue = finalPrice;
 
                     //PAngV default baseprice (used in Germany)

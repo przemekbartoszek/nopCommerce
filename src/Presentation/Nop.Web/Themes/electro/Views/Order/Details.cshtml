@@ -30,7 +30,7 @@
             <h3>@T("Order.OrderInformation")</h3>
             <div class="">
             <a href="@Url.RouteUrl("PrintOrderDetails", new { orderId = Model.Id })" target="_blank" class="btn btn-default print-order-button"><i class="fa fa-print" aria-hidden="true"></i> @T("Order.Print")</a>
-            @if (!Model.PdfInvoiceDisabled)
+            @if (false && !Model.PdfInvoiceDisabled)
             {
                 <a href="@Url.RouteUrl("GetOrderPdfInvoice", new { orderId = Model.Id })" class="btn btn-default pdf-invoice-button"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> @T("Order.GetPDFInvoice")</a>
             }
@@ -41,7 +41,7 @@
         @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderDetailsPageTop, additionalData = Model })
         <div class="order-overview">
             <div class="order-number">
-                <strong>@T("Order.Order#")@Model.CustomOrderNumber</strong>
+                <strong>@T("Order.Order#")&nbsp;@Model.CustomOrderNumber</strong>
             </div>
             <ul class="order-overview-content">
                 <li class="order-date">
@@ -607,17 +607,17 @@
                                             <span class="vendor-name">@item.VendorName</span>
                                         </td>
                                     }
-                                    <td class="unit-price">
-                                        <label class="td-title">@T("Order.Product(s).Price"):</label>
-                                        <span class="product-unit-price">@item.UnitPrice</span>
-                                    </td>
+                                <td class="unit-price">
+                                    <span class="product-unit-price">@item.UnitNetPrice&nbsp;netto</span><br/>
+                                    <span class="product-unit-price" style="font-size: x-small">@item.UnitPrice&nbsp;brutto</span>
+                                </td>
                                     <td class="quantity">
                                         <label class="td-title">@T("Order.Product(s).Quantity"):</label>
                                         <span class="product-quantity">@item.Quantity</span>
                                     </td>
                                     <td class="total">
-                                        <label class="td-title">@T("Order.Product(s).Total"):</label>
-                                        <span class="product-subtotal">@item.SubTotal</span>
+                                        <span class="product-subtotal">@item.SubNetTotal&nbsp;netto</span><br/>
+                                        <span class="product-subtotal" style="font-size: x-small">@item.SubTotal&nbsp;brutto</span>
                                     </td>
                                 </tr>
                             }

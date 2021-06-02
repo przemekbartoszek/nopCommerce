@@ -77,9 +77,13 @@
                             {
                                 <span class="price actual-price">@Model.ProductPrice.PriceNetto</span>
                                 <span style="font-size: small">netto</span>
-                                <br/>
+                                <br />
                             }
-                            <span class="price actual-price" style="font-size: 12px">@Model.ProductPrice.Price</span> <span style="font-size: x-small">brutto</span>
+                            @if (!string.IsNullOrEmpty(Model.ProductPrice.Price))
+                            {
+                                <span class="price actual-price" style="font-size: 12px">@Model.ProductPrice.Price</span>
+                                <span style="font-size: x-small">brutto</span>
+                            }
                             @if (Model.ProductPrice.DisplayTaxShippingInfo)
                             {
                                 var inclTax = workContext.TaxDisplayType == TaxDisplayType.IncludingTax;

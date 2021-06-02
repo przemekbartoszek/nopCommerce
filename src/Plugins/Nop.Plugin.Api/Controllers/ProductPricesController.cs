@@ -92,6 +92,7 @@ namespace Nop.Plugin.Api.Controllers
             product.ManageInventoryMethod = ManageInventoryMethod.ManageStockByProps;
             product.UpdatedOnUtc = DateTime.UtcNow;
             product.CallForPrice = productDelta.Dto.NetPrice <= 0;
+            product.TaxCategoryId = 2;//electronics
             _productService.UpdateProduct(product);
 
             CustomerActivityService.InsertActivity("APIService", $"Update product: '{product.Sku}' price: {productDelta.Dto.Price} ", product);

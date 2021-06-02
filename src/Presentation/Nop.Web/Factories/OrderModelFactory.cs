@@ -446,9 +446,13 @@ namespace Nop.Web.Factories
                     //including tax
                     var unitPriceInclTaxInCustomerCurrency = _currencyService.ConvertCurrency(orderItem.UnitPriceInclTax, order.CurrencyRate);
                     orderItemModel.UnitPrice = _priceFormatter.FormatPrice(unitPriceInclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, true);
+                    //VAT HART CODED
+                    orderItemModel.UnitNetPrice = _priceFormatter.FormatPrice(unitPriceInclTaxInCustomerCurrency / 1.23M, true, order.CustomerCurrencyCode, languageId, true);
 
                     var priceInclTaxInCustomerCurrency = _currencyService.ConvertCurrency(orderItem.PriceInclTax, order.CurrencyRate);
                     orderItemModel.SubTotal = _priceFormatter.FormatPrice(priceInclTaxInCustomerCurrency, true, order.CustomerCurrencyCode, languageId, true);
+                    //VAT HART CODED
+                    orderItemModel.SubNetTotal = _priceFormatter.FormatPrice(priceInclTaxInCustomerCurrency / 1.23M, true, order.CustomerCurrencyCode, languageId, true);
                 }
                 else
                 {

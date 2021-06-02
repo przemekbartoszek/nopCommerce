@@ -89,8 +89,13 @@ namespace Nop.Web.Models.Order
             public int ProductId { get; set; }
             public string ProductName { get; set; }
             public string ProductSeName { get; set; }
+
+            public string UnitNetPrice { get; set; }
             public string UnitPrice { get; set; }
+
             public string SubTotal { get; set; }
+            public string SubNetTotal { get; set; }
+
             public int Quantity { get; set; }
             public string AttributeInfo { get; set; }
             public string RentalInfo { get; set; }
