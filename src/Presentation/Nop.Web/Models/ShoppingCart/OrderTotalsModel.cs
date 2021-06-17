@@ -13,7 +13,7 @@ namespace Nop.Web.Models.ShoppingCart
         public bool IsEditable { get; set; }
 
         public string SubTotal { get; set; }
-        public string SubNetTotal { get; set; }
+        public string SubGrossTotal { get; set; }
 
         public string SubTotalDiscount { get; set; }
 

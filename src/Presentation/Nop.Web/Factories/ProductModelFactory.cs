@@ -315,8 +315,8 @@ namespace Nop.Web.Factories
                     if (displayFromMessage)
                     {
                         priceModel.OldPrice = null;
-                        //priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPriceWithDiscount));
-                        priceModel.PriceNetto = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(product.NetPrice));
+                        priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPriceWithDiscount));
+                        //priceModel.GrossPrice = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(product.GrossPrice));
                         priceModel.PriceValue = finalPriceWithDiscount;
                     }
                     else
@@ -333,7 +333,7 @@ namespace Nop.Web.Factories
                             priceModel.OldPrice = _priceFormatter.FormatPrice(strikeThroughPrice);
 
                         priceModel.Price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
-                        priceModel.PriceNetto = _priceFormatter.FormatPrice(product.NetPrice);
+                        priceModel.GrossPrice = _priceFormatter.FormatPrice(product.GrossPrice);
                         priceModel.PriceValue = finalPriceWithDiscount;
                     }
 
@@ -401,14 +401,12 @@ namespace Nop.Web.Factories
                             _priceCalculationService.GetFinalPrice(associatedProduct, _workContext.CurrentCustomer, quantity: int.MaxValue));
                     }
 
-                    //if (minPossiblePrice.HasValue && tmpMinPossiblePrice >= minPossiblePrice.Value)
-                    //    continue;
-                    if(associatedProduct.NetPrice > minPossibleNetPrice)
+                    if (minPossiblePrice.HasValue && tmpMinPossiblePrice >= minPossiblePrice.Value)
                         continue;
 
                     minPriceProduct = associatedProduct;
                     minPossiblePrice = tmpMinPossiblePrice;
-                    minPossibleNetPrice = associatedProduct.NetPrice;
+                    minPossibleNetPrice = associatedProduct.GrossPrice;
                 }
 
                 if (minPriceProduct == null || minPriceProduct.CustomerEntersPrice)
@@ -429,13 +427,7 @@ namespace Nop.Web.Factories
                     var finalPrice = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceBase, _workContext.WorkingCurrency);
 
                     priceModel.OldPrice = null;
-                    //priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPrice));
-                    if (minPossibleNetPrice.HasValue)
-                    {
-                        priceModel.PriceNetto =
-                            string.Format(_localizationService.GetResource("Products.PriceRangeFrom"),
-                                _priceFormatter.FormatPrice(minPossibleNetPrice.Value));
-                    }
+                    priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"), _priceFormatter.FormatPrice(finalPrice));
 
                     priceModel.PriceValue = finalPrice;
 
@@ -604,7 +596,7 @@ namespace Nop.Web.Factories
                             model.OldPrice = _priceFormatter.FormatPrice(oldPrice);
 
                         model.Price = _priceFormatter.FormatPrice(finalPriceWithoutDiscount);
-                        model.PriceNetto = _priceFormatter.FormatPrice(product.NetPrice);
+                        model.GrossPrice = _priceFormatter.FormatPrice(product.GrossPrice);
 
                         if (finalPriceWithoutDiscountBase != finalPriceWithDiscountBase)
                             model.PriceWithDiscount = _priceFormatter.FormatPrice(finalPriceWithDiscount);

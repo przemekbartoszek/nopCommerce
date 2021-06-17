@@ -5,7 +5,7 @@
             <tbody>
                 <tr class="order-subtotal">
                     <td class="cart-total-left">
-                        <label>@T("ShoppingCart.Totals.SubTotal") brutto:</label>
+                        <label>@T("ShoppingCart.Totals.SubTotal") netto:</label>
                     </td>
                     <td class="cart-total-right">
                         <span class="value-summary">@Model.SubTotal</span>
@@ -13,10 +13,10 @@
                 </tr>
                 <tr class="order-subtotal">
                     <td class="cart-total-left">
-                        <label>@T("ShoppingCart.Totals.SubTotal") netto:</label>
+                        <label>@T("ShoppingCart.Totals.SubTotal") brutto:</label>
                     </td>
                     <td class="cart-total-right">
-                        <span class="value-summary">@Model.SubNetTotal</span>
+                        <span class="value-summary">@Model.SubGrossTotal</span>
                     </td>
                 </tr>
                 @if (!string.IsNullOrEmpty(Model.SubTotalDiscount))
@@ -88,7 +88,7 @@
                 {
                     <tr class="tax-value">
                         <td class="cart-total-left">
-                            <label>@T("ShoppingCart.Totals.Tax"):</label>
+                            <label>VAT:</label>
                         </td>
                         <td class="cart-total-right">
                             <span class="value-summary">@Model.Tax</span>

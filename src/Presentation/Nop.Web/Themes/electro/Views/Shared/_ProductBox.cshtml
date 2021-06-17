@@ -73,16 +73,18 @@
                             {
                                 <span class="price old-price">@Model.ProductPrice.OldPrice</span>
                             }
-                            @if (!string.IsNullOrEmpty(Model.ProductPrice.PriceNetto))
-                            {
-                                <span class="price actual-price">@Model.ProductPrice.PriceNetto</span>
-                                <span style="font-size: small">netto</span>
-                                <br />
-                            }
                             @if (!string.IsNullOrEmpty(Model.ProductPrice.Price))
                             {
-                                <span class="price actual-price" style="font-size: 12px">@Model.ProductPrice.Price</span>
+                                <span class="price actual-price" >@Model.ProductPrice.Price</span>
+                                @if (Model.ProductPrice.Price.Any(char.IsDigit))
+                                {<span style="font-size: small">netto</span>}
+                                <br />
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ProductPrice.GrossPrice))
+                            {
+                                <span class="price actual-price" style="font-size: 12px">@Model.ProductPrice.GrossPrice</span>
                                 <span style="font-size: x-small">brutto</span>
+                            
                             }
                             @if (Model.ProductPrice.DisplayTaxShippingInfo)
                             {

@@ -59,8 +59,8 @@ namespace Nop.Web.Framework.Infrastructure.Extensions
                 //log application start
                 engine.Resolve<ILogger>().Information("Application started");
 
-                var migrationManager = EngineContext.Current.Resolve<IMigrationManager>();
-                migrationManager.ApplyUpMigrations();
+                //var migrationManager = EngineContext.Current.Resolve<IMigrationManager>();
+                //migrationManager.ApplyUpMigrations();
 
                 var pluginService = engine.Resolve<IPluginService>();
                 

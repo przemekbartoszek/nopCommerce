@@ -27,9 +27,9 @@ namespace Nop.Services.Prices
             foreach (var product in products)
             {
                 if (!product.SupplierPrice.HasValue) continue;
-                product.NetPrice = calculator.CalculateNetPrice(product.SupplierPrice.Value,
+                product.GrossPrice = calculator.CalculateNetPrice(product.SupplierPrice.Value,
                     product.SupplierPriceCurrency, product.MaxPrice, product.Margin ?? defaultMargin);
-                product.Price = calculator.CalculateGrossPrice(product.NetPrice);
+                product.Price = calculator.CalculateGrossPrice(product.GrossPrice);
                 product.LastPriceRefresh = DateTime.Now;
                 _productRepository.Update(product);
             }

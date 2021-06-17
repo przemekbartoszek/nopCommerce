@@ -70,10 +70,10 @@ namespace Nop.Web.Models.ShoppingCart
 
             public string UnitPrice { get; set; }
 
-            public string UnitNetPrice { get; set; }
+            public string UnitGrossPrice { get; set; }
 
             public string SubTotal { get; set; }
-            public string SubNetTotal { get; set; }
+            public string SubGrossTotal { get; set; }
 
             public string Discount { get; set; }
             public int? MaximumDiscountedQty { get; set; }

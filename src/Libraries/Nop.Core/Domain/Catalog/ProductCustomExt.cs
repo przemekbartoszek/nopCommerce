@@ -6,7 +6,7 @@ namespace Nop.Core.Domain.Catalog
 {
     public partial class Product
     {
-        public decimal NetPrice { get; set; }
+        public decimal GrossPrice { get; set; }
         public decimal? SupplierPrice { get; set; }
         public string SupplierPriceCurrency { get; set; }
         public string Supplier { get; set; }

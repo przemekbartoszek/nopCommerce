@@ -23,7 +23,7 @@ namespace Nop.Web.Areas.Admin.Models.Catalog
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.MaxPrice")]
         public decimal? MaxPrice { get; set; }
 
-        [NopResourceDisplayName("Admin.Catalog.Products.Fields.NetPrice")]
+        [NopResourceDisplayName("Admin.Catalog.Products.Fields.GrossPrice")]
         public decimal NetPrice { get; set; }
 
         [NopResourceDisplayName("Admin.Catalog.Products.Fields.AutoCalculatePrice")]

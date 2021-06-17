@@ -180,7 +180,7 @@ namespace Nop.Web.Models.Catalog
             public string OldPrice { get; set; }
 
             public string Price { get; set; }
-            public string PriceNetto { get; set; }
+            public string GrossPrice { get; set; }
             public string PriceWithDiscount { get; set; }
             public decimal PriceValue { get; set; }
 

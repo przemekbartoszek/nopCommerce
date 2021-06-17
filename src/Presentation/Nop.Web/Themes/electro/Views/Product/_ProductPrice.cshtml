@@ -43,10 +43,10 @@
             <label>@T("Products.Price"):</label>
         }
         @*render price*@<span @if (string.IsNullOrWhiteSpace(Model.PriceWithDiscount)) { <text> itemprop="price" content="@Model.PriceValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" class="price-value-@(Model.ProductId)" </text>  }>
-            @Html.Raw(Model.PriceNetto)
+            @Html.Raw(Model.Price)
         </span>
         <span style="font-size: small">netto</span><br/>
-        <span style="font-size: 18px">@Html.Raw(Model.Price) </span>
+        <span style="font-size: 18px">@Html.Raw(Model.GrossPrice) </span>
         <span style="font-size: x-small">brutto</span>
     </div>
             if (!string.IsNullOrWhiteSpace(Model.PriceWithDiscount))

@@ -79,8 +79,8 @@ namespace Nop.Plugin.Api.Controllers
                 return Error(HttpStatusCode.NotFound, "product", "not found");
             }
 
-            product.NetPrice = productDelta.Dto.NetPrice;
-            product.Price = productDelta.Dto.Price;
+            product.GrossPrice = productDelta.Dto.Price;
+            product.Price = productDelta.Dto.NetPrice;
             product.SupplierPrice = productDelta.Dto.SupplierPrice;
             product.Supplier = productDelta.Dto.Supplier;
             product.SupplierPriceCurrency = productDelta.Dto.SupplierPriceCurrency;
