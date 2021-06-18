@@ -379,8 +379,8 @@ namespace Nop.Web.Factories
             }
 
             model.DisplayVatNumber = _taxSettings.EuVatEnabled;
-            model.VatNumberStatusNote = _localizationService.GetLocalizedEnum((VatNumberStatus)_genericAttributeService
-                .GetAttribute<int>(customer, NopCustomerDefaults.VatNumberStatusIdAttribute));
+            model.VatNumberStatusNote = string.Empty;//_localizationService.GetLocalizedEnum((VatNumberStatus)_genericAttributeService
+                //.GetAttribute<int>(customer, NopCustomerDefaults.VatNumberStatusIdAttribute));
             model.FirstNameEnabled = _customerSettings.FirstNameEnabled;
             model.LastNameEnabled = _customerSettings.LastNameEnabled;
             model.FirstNameRequired = _customerSettings.FirstNameRequired;
