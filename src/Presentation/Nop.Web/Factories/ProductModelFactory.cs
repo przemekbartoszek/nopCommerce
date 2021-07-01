@@ -520,7 +520,8 @@ namespace Nop.Web.Factories
                     Id = catBr.Id,
                     Name = _localizationService.GetLocalized(catBr, x => x.Name),
                     SeName = _urlRecordService.GetSeName(catBr),
-                    IncludeInTopMenu = catBr.IncludeInTopMenu
+                    IncludeInTopMenu = catBr.IncludeInTopMenu,
+                    IsRoot = catBr.ParentCategoryId == 0
                 });
             }
 

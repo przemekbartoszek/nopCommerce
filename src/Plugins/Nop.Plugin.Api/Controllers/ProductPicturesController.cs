@@ -116,7 +116,6 @@ namespace Nop.Plugin.Api.Controllers
             }
 
             CustomerActivityService.InsertActivity("APIService", string.Format("Attempting to create picture with name {0}.", productPictureDelta.Dto.SeoFilename), null);
-
             var newPicture = PictureService.InsertPicture(Convert.FromBase64String(productPictureDelta.Dto.Attachment), productPictureDelta.Dto.MimeType, productPictureDelta.Dto.SeoFilename);
             ProductPicture productPicture = null;
             if (productPictureDelta.Dto.ProductIds?.Any() == true)
@@ -145,6 +144,61 @@ namespace Nop.Plugin.Api.Controllers
 
             return new RawJsonActionResult(json);
         }
+
+        [HttpPost]
+        [Route("/api/overrideproductpictures")]
+        [ProducesResponseType(typeof(ProductPicturesRootObjectDto), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        [ProducesResponseType(typeof(ErrorsRootObject), 422)]
+        public IActionResult OverrideProductPicture([ModelBinder(typeof(JsonModelBinder<ImageMappingDto>))] Delta<ImageMappingDto> productPictureDelta)
+        {
+            // Here we display the errors if the validation has failed at some point.
+            if (!ModelState.IsValid)
+            {
+                return Error();
+            }
+
+            CustomerActivityService.InsertActivity("APIService", string.Format("Attempting to create picture with name {0}.", productPictureDelta.Dto.SeoFilename), null);
+
+            var newPicture = PictureService.InsertPicture(Convert.FromBase64String(productPictureDelta.Dto.Attachment), productPictureDelta.Dto.MimeType, productPictureDelta.Dto.SeoFilename);
+            ProductPicture productPicture = null;
+            if (productPictureDelta.Dto.ProductIds?.Any() == true)
+            {
+                foreach (var productId in productPictureDelta.Dto.ProductIds)
+                {
+
+                    var pictures = _productService.GetProductPicturesByProductId(productId);
+                    if (pictures.Count == 1)
+                    {
+                        _productService.DeleteProductPicture(pictures[0]);
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    productPicture = new ProductPicture()
+                    {
+                        PictureId = newPicture.Id,
+                        ProductId = productId,
+                        DisplayOrder = productPictureDelta.Dto.Position
+                    };
+                    _productService.InsertProductPicture(productPicture);
+                }
+            }
+
+            var product = _productService.GetProductById(productPictureDelta.Dto.ProductIds.First());
+            PictureService.SetSeoFilename(newPicture.Id, PictureService.GetPictureSeName(product.Name));
+
+            var productImagesRootObject = new ProductPicturesRootObjectDto();
+            productImagesRootObject.Image = _dtoHelper.PrepareProductPictureDTO(productPicture);
+
+            var json = JsonFieldsSerializer.Serialize(productImagesRootObject, string.Empty);
+
+            CustomerActivityService.InsertActivity("APIService", string.Format("Successfully created and returned image {0}.", productPictureDelta.Dto.SeoFilename), null);
+
+            return new RawJsonActionResult(json);
+        }
+
 
         [HttpDelete]
         [Route("/api/productpictures/{id}")]

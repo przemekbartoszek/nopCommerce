@@ -30,9 +30,12 @@ namespace Nop.Services.Prices
         {
             var price = supplierPriceNet * GetExchangeRate(supplierPriceCurrency);
             price += (price * margin / 100);
-            return price >= maxPriceNetPln 
-                ? Math.Round(maxPriceNetPln.Value - (maxPriceNetPln.Value > 100 ? 5 : 1), 2, MidpointRounding.AwayFromZero) 
-                : Math.Round(price, 2, MidpointRounding.AwayFromZero);
+            if (price < maxPriceNetPln)
+            {
+                price = maxPriceNetPln.Value - 1;
+            }
+
+            return Math.Round(price, 2, MidpointRounding.AwayFromZero);
         }
 
         public decimal CalculateGrossPrice(decimal netPrice) => Math.Round(netPrice * 1.23M, 2, MidpointRounding.AwayFromZero);

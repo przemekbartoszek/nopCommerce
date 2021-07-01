@@ -11,6 +11,7 @@
                                     @await Component.InvokeAsync("Logo")
                                 </div>
                             </div>
+                            
                             <div class="zmb-wrap zmb-primary-wrap zmb-menu-location-primary zmb-is-sticky">
                                 <ul id="menu-main-menu" class="primary-menu zmb-menu">
                                     @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.HeaderMenuBefore })
@@ -58,6 +59,9 @@
                                     @await Component.InvokeAsync("Widget", new { widgetZone = "header_menu_after" })
                                 </ul>
                             </div><!-- /.navbar-collapse -->
+                            <div class="search-box">
+                                @await Component.InvokeAsync("SearchBox")
+                            </div>
                         </div>
                     </nav>
                 </div>

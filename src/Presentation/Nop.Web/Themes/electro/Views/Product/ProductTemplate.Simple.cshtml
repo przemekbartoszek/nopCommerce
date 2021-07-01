@@ -156,10 +156,10 @@
                                     <a class="nav-link active" data-toggle="tab" href="#productspecification" role="tab">@T("Products.Specs")</a>
                                 </li>
                             }
-                            @if (!string.IsNullOrEmpty(Model.FullDescription))
+                            @if (!string.IsNullOrWhiteSpace(Model.FullDescription))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" data-toggle="tab" href="#productdetails" role="tab">@T("admin.catalog.attributes.productattributes.fields.description")</a>
+                                    <a class="nav-link @(!Model.ProductSpecifications.Any() ? "active": string.Empty)" data-toggle="tab" href="#productdetails" role="tab">@T("admin.catalog.attributes.productattributes.fields.description")</a>
                                 </li>
                             }
                             @if (Model.ProductTags.Any())
@@ -178,9 +178,9 @@
                                     @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecifications)
                                 </div>
                             }
-                            @if (!string.IsNullOrEmpty(Model.FullDescription))
+                            @if (!string.IsNullOrWhiteSpace(Model.FullDescription))
                             {
-                                <div class="tab-pane" id="productdetails" role="tabpanel">
+                                <div class="tab-pane @(!Model.ProductSpecifications.Any() ? "active": string.Empty)" id="productdetails" role="tabpanel">
                                     <div class="full-description fade show" id="productdetails" itemprop="description">
                                         @Html.Raw(Model.FullDescription)
                                     </div>

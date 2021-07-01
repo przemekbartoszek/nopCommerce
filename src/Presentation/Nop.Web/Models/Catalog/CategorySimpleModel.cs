@@ -10,6 +10,8 @@ namespace Nop.Web.Models.Catalog
             SubCategories = new List<CategorySimpleModel>();
         }
 
+        public bool IsRoot { get; set; }
+
         public string Name { get; set; }
 
         public string SeName { get; set; }

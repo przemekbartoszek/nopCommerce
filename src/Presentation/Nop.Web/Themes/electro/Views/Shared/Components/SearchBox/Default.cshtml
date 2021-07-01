@@ -2,10 +2,10 @@
 @using System.Text.Encodings.Web
 <form asp-route="ProductSearch" method="get" id="small-search-box-form">
     <div class="form-group input-group">
-    <input type="text" class="search-box-text form-control" id="small-searchterms" autocomplete="off" name="q" placeholder="@T("Search.SearchBox.Tooltip")" aria-label="@T("Search.SearchBox.Text.Label")" />
+    <input type="text" style="background: aliceblue" class="search-box-text form-control" id="small-searchterms" autocomplete="off" name="q" placeholder="@T("Search.SearchBox.Tooltip")" aria-label="@T("Search.SearchBox.Text.Label")" />
     @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.SearchBoxBeforeSearchButton })
     <span class="input-group-append">
-        <button type="submit" class="search-icon" value=""><i class="fa fa-search"></i> @*@T("Search.Button")*@</button>
+        <button type="submit" class="search-icon" value="" style="background: aliceblue"><i class="fa fa-search"></i> @*@T("Search.Button")*@</button>
      </span>
     @if (Model.SearchTermMinimumLength > 0)
     {

@@ -7,15 +7,22 @@
         </div>
       <div class="side-nav-gbtbox showHide-ft"> 
         <ul>
-            @foreach (var category in Model.Categories)
+            @{
+                var rootCat = Model.Categories.FirstOrDefault();
+                if (rootCat != null)
                 {
-                    var categoryLineModel = new CategoryNavigationModel.CategoryLineModel
+                    
+                    foreach (var category in rootCat.SubCategories)
                     {
-                        CurrentCategoryId = Model.CurrentCategoryId,
-                        Category = category
-                    };
-                @await Html.PartialAsync("_CategoryLine.Navigation", categoryLineModel)
+                        var categoryLineModel = new CategoryNavigationModel.CategoryLineModel
+                        {
+                            CurrentCategoryId = Model.CurrentCategoryId,
+                            Category = category
+                        };
+                        @await Html.PartialAsync("_CategoryLine.Navigation", categoryLineModel)
+                    }
                 }
+            }
         </ul>
       </div>
     </div>

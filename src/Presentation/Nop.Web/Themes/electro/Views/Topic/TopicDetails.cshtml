@@ -1,7 +1,9 @@
 ﻿@model TopicModel
 @using Nop.Core.Domain.Seo
+@using Nop.Services.Localization
 @inject Nop.Core.IWebHelper webHelper
 @inject SeoSettings seoSettings
+@inject ILocalizationService localizationService
 @{
     var isPopup = ViewBag.IsPopup;
     if (isPopup == null || isPopup == false)
@@ -12,7 +14,7 @@
     if (!Model.IsPasswordProtected)
     {
         //title
-        Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Title);
+        Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : localizationService.GetResource(Model.Title));
         //meta
         Html.AddMetaDescriptionParts(Model.MetaDescription);
         Html.AddMetaKeywordParts(Model.MetaKeywords);
@@ -87,14 +89,14 @@
     </div>
 }
 <div class="onepageview">
-<div class="container">
-<div class="page topic-page" id="ph-topic">
-    <div class="page-title" id="ph-title">
-        <h3>@T(Model.Title)</h3>
+    <div class="container">
+        <div class="page topic-page" id="ph-topic">
+            <div class="page-title" id="ph-title">
+                <h3>@T(Model.Title)</h3>
+            </div>
+            <div class="page-body mb-5">
+                @Html.Raw(Model.Body)
+            </div>
+        </div>
     </div>
-    <div class="page-body mb-5">
-        @Html.Raw(Model.Body)
-    </div>
-</div>
-</div>
 </div>
