@@ -50,11 +50,11 @@ body.zmb-is-opened:after {
 ********************************/
 
 .zmb-wrap {
-    /*width: 100%;*/
-    overflow:hidden;
-    padding-left:245px;
-    width:calc(100% - 210px);
-    display:inline-block;
+  /*width: 100%;*/
+  overflow: visible;
+  padding-left: 245px;
+  width: calc(100% - 210px);
+  display: inline-block;
 }
 .zmb-wrap .zmb-toggle-menu-mobile {
     display: none;   
@@ -450,9 +450,6 @@ body.zmb-is-opened:after {
     overflow: visible;
 }
 
-#menu-main-menu {
-  margin-left: 25%;
-}
 /*****************************
      Menu responsive 
 *****************************/

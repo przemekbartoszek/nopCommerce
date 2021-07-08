@@ -4,7 +4,7 @@
 
 @import url('https://fonts.googleapis.com/css?family=Oswald:300,400,500,600,700|Poppins:300,400,500,600,700,800');
 @import url('https://use.fontawesome.com/releases/v5.0.9/css/all.css');
-@import url('http://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css');
+@import url('https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css');
 @import url('default.css');
 @import url('effects.css');
 
@@ -295,18 +295,35 @@ header{
 .header-logo img{
     max-width:250px;
 }
+
 .searchbtn {
-    font-size:16px;
-    padding:27px 10px 26px 10px;
-    cursor:pointer;
-    display:inline-block;
-    vertical-align:top;
-    position:relative;
-    z-index:9;
-    height:75px;
-    background:#fff;
+  font-size: 16px;
+  padding: 27px 10px 26px 10px;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  z-index: 9;
+  height: 75px;
+  background: #fff;
 }
-.search-box{position:absolute;right:160px;top:14px;max-width:380px;width:100%;background:#ffffff;z-index:9;	border-radius:50px;-webkit-border-radius:50px;-moz-border-radius:50px;overflow:hidden;transition:all ease-in-out 0.4s;-webkit-transition:all ease-in-out 0.4s;-moz-transition:all ease-in-out 0.4s;}
+
+/*.search-box{position:absolute;right:160px;top:14px;max-width:380px;width:100%;background:#ffffff;z-index:9;	border-radius:50px;-webkit-border-radius:50px;-moz-border-radius:50px;overflow:hidden;transition:all ease-in-out 0.4s;-webkit-transition:all ease-in-out 0.4s;-moz-transition:all ease-in-out 0.4s;}*/
+.search-box {
+  margin-right: 180px;
+  margin-top: -50px;
+  float: right;
+  max-width: 380px;
+  background: #ffffff;
+  z-index: 9;
+  border-radius: 50px;
+  -webkit-border-radius: 50px;
+  -moz-border-radius: 50px;
+  overflow: hidden;
+  transition: all ease-in-out 0.4s;
+  -webkit-transition: all ease-in-out 0.4s;
+  -moz-transition: all ease-in-out 0.4s;
+}
 .search-box.search-display{display:block;opacity:1;}
 .search-box input[type="text"]{height:50px;padding:10px 15px 10px 20px;font-size:16px;line-height:36px;background:#fff;border:none;}
 .search-box .search-icon{width:51px;background:#fff;border:none;font-size:16px;color:#777;}

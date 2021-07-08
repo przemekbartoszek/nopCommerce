@@ -43,6 +43,7 @@ namespace Nop.Plugin.Api.Controllers
         private readonly IFactory<Product> _factory;
         private readonly IProductTagService _productTagService;
         private readonly IProductAttributeService _productAttributeService;
+        private readonly ISpecificationAttributeService _specificationAttributeService;
         private readonly IDTOHelper _dtoHelper;
         private readonly IHostEnvironment _hostEnvironment;
         private readonly ILogger _logger;
@@ -69,6 +70,7 @@ namespace Nop.Plugin.Api.Controllers
                                   IManufacturerService manufacturerService,
                                   IProductTagService productTagService,
                                   IProductAttributeService productAttributeService,
+                                  ISpecificationAttributeService specificationAttributeService,
                                   ILogger logger,
                                   IDTOHelper dtoHelper,
                                   IHostEnvironment hostEnvironment) : base(jsonFieldsSerializer, aclService, customerService, storeMappingService, storeService, discountService, customerActivityService, localizationService, pictureService)
@@ -83,6 +85,7 @@ namespace Nop.Plugin.Api.Controllers
             _urlRecordService = urlRecordService;
             _productService = productService;
             _productAttributeService = productAttributeService;
+            _specificationAttributeService = specificationAttributeService;
             _logger = logger;
             _dtoHelper = dtoHelper;
             _hostEnvironment = hostEnvironment;
@@ -368,6 +371,75 @@ namespace Nop.Plugin.Api.Controllers
             return new RawJsonActionResult(json);
         }
 
+        //[HttpPut]
+        //[Route("/api/products/{id}")]
+        //[ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
+        //[ProducesResponseType(typeof(string), (int)HttpStatusCode.Unauthorized)]
+        //[ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        //[ProducesResponseType(typeof(ErrorsRootObject), 422)]
+        //[ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
+        //public IActionResult UpdateProduct([ModelBinder(typeof(JsonModelBinder<ProductDto>))] Delta<ProductDto> productDelta)
+        //{
+        //    // Here we display the errors if the validation has failed at some point.
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return Error();
+        //    }
+        //    CustomerActivityService.InsertActivity("APIService", "Starting Product Update", null);
+
+        //    var product = _productApiService.GetProductById(productDelta.Dto.Id);
+
+        //    if (product == null)
+        //    {
+        //        return Error(HttpStatusCode.NotFound, "product", "not found");
+        //    }
+
+        //    productDelta.Merge(product);
+
+        //    product.UpdatedOnUtc = DateTime.UtcNow;
+        //    _productService.UpdateProduct(product);
+
+        //    UpdateProductAttributes(product, productDelta);
+
+        //    UpdateProductPictures(product, productDelta.Dto.Images);
+
+        //    UpdateProductTags(product, productDelta.Dto.Tags);
+
+        //    UpdateProductManufacturers(product, productDelta.Dto.ManufacturerIds);
+
+        //    UpdateAssociatedProducts(product, productDelta.Dto.AssociatedProductIds);
+
+        //    // Update the SeName if specified
+        //    if (productDelta.Dto.SeName != null)
+        //    {
+        //        var seName = _urlRecordService.ValidateSeName(product, productDelta.Dto.SeName, product.Name, true);
+        //        _urlRecordService.SaveSlug(product, seName, 0);
+        //    }
+
+        //    UpdateDiscountMappings(product, productDelta.Dto.DiscountIds);
+
+        //    UpdateStoreMappings(product, productDelta.Dto.StoreIds);
+
+        //    UpdateAclRoles(product, productDelta.Dto.RoleIds);
+
+        //    _productService.UpdateProduct(product);
+
+        //    CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.UpdateProduct"), product);
+
+        //    // Preparing the result dto of the new product
+        //    var productDto = _dtoHelper.PrepareProductDTO(product);
+
+        //    var productsRootObject = new ProductsRootObjectDto();
+
+        //    productsRootObject.Products.Add(productDto);
+
+        //    var json = JsonFieldsSerializer.Serialize(productsRootObject, string.Empty);
+
+        //    return new RawJsonActionResult(json);
+            
+            
+        //}
+
         [HttpPut]
         [Route("/api/products/{id}")]
         [ProducesResponseType(typeof(ProductsRootObjectDto), (int)HttpStatusCode.OK)]
@@ -375,7 +447,7 @@ namespace Nop.Plugin.Api.Controllers
         [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(ErrorsRootObject), 422)]
         [ProducesResponseType(typeof(ErrorsRootObject), (int)HttpStatusCode.BadRequest)]
-        public IActionResult UpdateProduct([ModelBinder(typeof(JsonModelBinder<ProductDto>))] Delta<ProductDto> productDelta)
+        public IActionResult SimpleUpdateProduct([ModelBinder(typeof(JsonModelBinder<ProductDto>))] Delta<ProductDto> productDelta)
         {
             // Here we display the errors if the validation has failed at some point.
             if (!ModelState.IsValid)
@@ -384,47 +456,41 @@ namespace Nop.Plugin.Api.Controllers
             }
             CustomerActivityService.InsertActivity("APIService", "Starting Product Update", null);
 
-            var product = _productApiService.GetProductById(productDelta.Dto.Id);
+            var product = productDelta.Dto;//_productApiService.GetProductById(productDelta.Dto.Id);
 
             if (product == null)
             {
                 return Error(HttpStatusCode.NotFound, "product", "not found");
             }
 
-            productDelta.Merge(product);
 
-            product.UpdatedOnUtc = DateTime.UtcNow;
-            _productService.UpdateProduct(product);
+            var dbProduct = _productService.GetProductById(product.Id);
+            dbProduct.FullDescription = product.FullDescription;
+            dbProduct.ShortDescription = product.ShortDescription;
+            dbProduct.Name = product.Name;
+            dbProduct.UpdatedOnUtc = DateTime.UtcNow;
+            UpdateProductManufacturers(dbProduct, product.ManufacturerIds);
+            _productService.UpdateProduct(dbProduct);
+            if (productDelta.Dto.ProductSpecificationAttributes?.Any() == true)
+            {
+                UpdateProductSpecificationAttributes(productDelta.Dto);
+            }
 
-            UpdateProductAttributes(product, productDelta);
+            UpdateProductTags(dbProduct, productDelta.Dto.Tags);
 
-            UpdateProductPictures(product, productDelta.Dto.Images);
-
-            UpdateProductTags(product, productDelta.Dto.Tags);
-
-            UpdateProductManufacturers(product, productDelta.Dto.ManufacturerIds);
-
-            UpdateAssociatedProducts(product, productDelta.Dto.AssociatedProductIds);
 
             // Update the SeName if specified
             if (productDelta.Dto.SeName != null)
             {
-                var seName = _urlRecordService.ValidateSeName(product, productDelta.Dto.SeName, product.Name, true);
-                _urlRecordService.SaveSlug(product, seName, 0);
+                var seName = _urlRecordService.ValidateSeName(dbProduct, productDelta.Dto.SeName, product.Name, true);
+                _urlRecordService.SaveSlug(dbProduct, seName, 0);
             }
 
-            UpdateDiscountMappings(product, productDelta.Dto.DiscountIds);
 
-            UpdateStoreMappings(product, productDelta.Dto.StoreIds);
-
-            UpdateAclRoles(product, productDelta.Dto.RoleIds);
-
-            _productService.UpdateProduct(product);
-
-            CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.UpdateProduct"), product);
+            CustomerActivityService.InsertActivity("APIService", LocalizationService.GetResource("ActivityLog.UpdateProduct"), dbProduct);
 
             // Preparing the result dto of the new product
-            var productDto = _dtoHelper.PrepareProductDTO(product);
+            var productDto = _dtoHelper.PrepareProductDTO(dbProduct);
 
             var productsRootObject = new ProductsRootObjectDto();
 
@@ -433,8 +499,34 @@ namespace Nop.Plugin.Api.Controllers
             var json = JsonFieldsSerializer.Serialize(productsRootObject, string.Empty);
 
             return new RawJsonActionResult(json);
-            
-            
+        }
+
+        private void UpdateProductSpecificationAttributes(ProductDto productDto)
+        {
+            var attrs = _specificationAttributeService.GetProductSpecificationAttributes(productDto.Id);
+            var newAttrs = productDto.ProductSpecificationAttributes;
+
+            var toDelete = attrs.Where(x => newAttrs.All(a => a.AttributeTypeId != x.AttributeTypeId)).ToList();
+            var toAdd = newAttrs.Where(x => attrs.All(a => a.AttributeTypeId != x.AttributeTypeId)).ToList();
+
+            foreach (var productSpecificationAttribute in toDelete)
+            {
+                _specificationAttributeService.DeleteProductSpecificationAttribute(productSpecificationAttribute);                
+            }
+
+            foreach (var psa in toAdd)
+            {
+                _specificationAttributeService.InsertProductSpecificationAttribute(new ProductSpecificationAttribute
+                {
+                    AttributeTypeId = psa.AttributeTypeId,
+                    AllowFiltering = psa.AllowFiltering,
+                    CustomValue = psa.CustomValue,
+                    DisplayOrder = psa.DisplayOrder,
+                    ProductId = psa.ProductId,
+                    ShowOnProductPage = psa.ShowOnProductPage,
+                    SpecificationAttributeOptionId = psa.SpecificationAttributeOptionId
+                });
+            }
         }
 
         [HttpPut]

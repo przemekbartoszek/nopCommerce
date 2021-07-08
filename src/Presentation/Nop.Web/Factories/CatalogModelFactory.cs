@@ -558,6 +558,7 @@ namespace Nop.Web.Factories
                     .Select(t => new TopMenuModel.TopicModel
                     {
                         Id = t.Id,
+                        Text = t.IncludeInFooterColumn3 ? t.Body : string.Empty,
                         Name = _localizationService.GetLocalized(t, x => x.Title),
                         SeName = _urlRecordService.GetSeName(t)
                     }).ToList();
