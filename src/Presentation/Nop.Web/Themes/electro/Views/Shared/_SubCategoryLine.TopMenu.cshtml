@@ -2,7 +2,7 @@
 <li class="menu-item zanmenu-menu-item dropdown menu-item-has-children">
     @*<span class="fa fa-angle-down visible-xs"></span>*@
     <a class="zmb-item-title zmb-dropdown-toggle" data-title="Mega Menu" data-toggle="dropdown" href="@Url.RouteUrl("Category", new { SeName = Model.SeName })" role="button" aria-expanded="false">
-        <span class="category-name">@Model.Name <i class="fa fa-angle-down"></i></span>
+        <span class="category-name" style="font-weight: bold; font-size: 14px"> @Model.Name <i class="fa fa-angle-down"></i></span>
         @if (Model.NumberOfProducts.HasValue)
         {
             <text> </text>@T("Categories.TotalProducts", Model.NumberOfProducts.Value)

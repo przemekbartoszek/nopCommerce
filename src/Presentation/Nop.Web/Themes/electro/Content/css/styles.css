@@ -311,7 +311,7 @@ header{
 /*.search-box{position:absolute;right:160px;top:14px;max-width:380px;width:100%;background:#ffffff;z-index:9;	border-radius:50px;-webkit-border-radius:50px;-moz-border-radius:50px;overflow:hidden;transition:all ease-in-out 0.4s;-webkit-transition:all ease-in-out 0.4s;-moz-transition:all ease-in-out 0.4s;}*/
 .search-box {
   margin-right: 180px;
-  margin-top: -50px;
+  margin-top: -45px;
   float: right;
   max-width: 380px;
   background: #ffffff;

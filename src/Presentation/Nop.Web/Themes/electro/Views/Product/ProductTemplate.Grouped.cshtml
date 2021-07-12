@@ -182,7 +182,7 @@
                                                 @await Html.PartialAsync("_ProductSpecifications", variant.ProductSpecifications, dataDictSpecifications)
                                             }
                                             else if(!string.IsNullOrEmpty(variant.FullDescription)){
-                                                <span style="font-size: 11px" >@Html.Raw(variant.FullDescription.Length > 256 ? (variant.FullDescription.Substring(0, 255) + "...") : variant.FullDescription)</span>
+                                                <span style="font-size: 11px" >@Html.Raw(variant.FullDescription)</span>
                                             }
                                             <!--gift card-->
                                             @{
@@ -208,13 +208,23 @@
                                                 var dataDictAddToCart = new ViewDataDictionary(ViewData);
                                                 dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{variant.Id}";
                                                 @await Html.PartialAsync("_AddToCart", variant.AddToCart, dataDictAddToCart)
+
+
                                             }
                                             <!--wishlist-->
+                                        <div>
                                             @{
                                                 var dataDictAddToWishlist = new ViewDataDictionary(ViewData);
                                                 dataDictAddToWishlist.TemplateInfo.HtmlFieldPrefix = $"addtocart_{variant.Id}";
                                                 @await Html.PartialAsync("_AddToWishlist", variant.AddToCart, dataDictAddToWishlist)
                                             }
+
+                                  
+                                                <button type="button" style="margin-left: 6px;"value="" class="btn btn-default" onclick="setLocation('@Url.RouteUrl("Product", new {SeName = variant.SeName})')">
+                                                    <i class="fa fa-eye"></i> @*@T("Products.Details")*@
+                                                </button>
+              
+                                        </div>
                                         </div>
                                     </div>
                                 </div>

@@ -33,7 +33,7 @@
             }
             else
             {
-            <input asp-for="EnteredQuantity" class="qty-input" type="text" />
+            <input asp-for="EnteredQuantity" class="qty-input" type="text" value="1"/>
             <script asp-location="Footer">
                 $(document).ready(function() {
                     $("#@Html.IdFor(model => model.EnteredQuantity)").on("keydown", function(event) {
